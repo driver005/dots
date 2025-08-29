@@ -43,14 +43,14 @@ if ! command_exists lazygit; then
 fi
 
 # 3. Install LazyVim (if not installed)
-echo "Installing LazyVim plugin manager..."
+# echo "Installing LazyVim plugin manager..."
 
 # Clone the LazyVim repository into Neovim's configuration directory
-if [ ! -d "$HOME/.config/nvim" ]; then
-	mkdir -p "$HOME/.config/nvim"
+# if [ ! -d "$HOME/.config/nvim" ]; then
+	# mkdir -p "$HOME/.config/nvim"
 
 	# LazyVim installation: cloning the LazyVim repository
-	git clone https://github.com/LazyVim/LazyVim.git "$HOME/.config/nvim"
-fi
+	# git clone https://github.com/LazyVim/LazyVim.git "$HOME/.config/nvim"
+# fi
 
 echo "LazyVim has been installed successfully!"
