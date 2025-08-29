@@ -10,10 +10,10 @@ if ! command_exists nvim; then
 	echo "Neovim not found. Installing Neovim..."
 	# For Debian/Ubuntu-based systems
 	if command_exists apt; then
-		sudo apt update
+		#sudo apt update
 		#sudo apt install -y neovim
 		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
-		tar xf nvim.tar.gz nvim
+		tar xf nvim.tar.gz nvim-linux-x86_64/bin/nvim
 		sudo install nvim -D -t /usr/local/bin/
   		#sudo rm -rf /opt/nvim
 		#sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz	
