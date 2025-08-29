@@ -11,8 +11,13 @@ if ! command_exists nvim; then
 	# For Debian/Ubuntu-based systems
 	if command_exists apt; then
 		sudo apt update
-		sudo apt install -y neovim
-	# For RedHat/CentOS-based systems
+		#sudo apt install -y neovim
+		curl -LO nvim.tar.gz https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+		tar xf nvim.tar.gz neovim
+		sudo install neovim -D -t /usr/local/bin/
+  		#sudo rm -rf /opt/nvim
+		#sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz	
+ 	# For RedHat/CentOS-based systems
 	elif command_exists dnf; then
 		sudo dnf install -y neovim
 	# For macOS using Homebrew
