@@ -30,7 +30,7 @@ fi
 
 # Install fzf if not installed
 if ! command_exists starship; then
-	echo "Fzf not found. Installing fzf..."
+	echo "Starship not found. Installing starship..."
 	curl -sS https://starship.rs/install.sh | sh
 fi
 
