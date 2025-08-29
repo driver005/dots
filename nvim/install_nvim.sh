@@ -13,8 +13,8 @@ if ! command_exists nvim; then
 		sudo apt update
 		#sudo apt install -y neovim
 		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
-		tar xf nvim.tar.gz neovim
-		sudo install neovim -D -t /usr/local/bin/
+		tar xf nvim.tar.gz nvim
+		sudo install nvim -D -t /usr/local/bin/
   		#sudo rm -rf /opt/nvim
 		#sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz	
  	# For RedHat/CentOS-based systems
