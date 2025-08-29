@@ -16,7 +16,7 @@ if ! command_exists nvim; then
 		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
 
 		# Extract and install Neovim in one step
-		tar -xvzf nvim.tar.gz --strip-components=2 nvim-linux-x86_64/bin/nvim -C /usr/local/bin/
+		tar -xvzf nvim.tar.gz --strip-components=2 nvim-linux-x86_64/bin/ -C /usr/local/bin/
 
 		# Clean up tarball
 		rm nvim.tar.gz
