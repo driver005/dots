@@ -58,7 +58,7 @@ fi
 # Install nvim if not installed
 if ! command_exists nvim; then
 	echo "Nvim not found. Installing nvim..."
-	sh ./nvim/install_nvim.sh
+	./nvim/install_nvim.sh
 fi
 
 stow .
