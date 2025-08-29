@@ -43,13 +43,23 @@ if [ -d "~/.tmux/plugins/tpm" ]; then
 	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/time
 fi
 
-# Install fzf if not installed
+# Install tmux if not installed
 if ! command_exists tmux; then
 	echo "Tmux not found. Installing tmux..."
 	sudo apt install -y tmux
 fi
 
-sh ./nvim/install_nvim.sh
+# Install stow if not installed
+if ! command_exists tmux; then
+	echo "Stow not found. Installing stow..."
+	sudo apt install -y stow
+fi
+
+# Install nvim if not installed
+if ! command_exists tmux; then
+	echo "Nvim not found. Installing nvim..."
+	sudo sh ./nvim/install_nvim.sh
+fi
 
 stow .
 
