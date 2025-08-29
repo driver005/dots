@@ -25,22 +25,18 @@ fi
 if ! command_exists fzf; then
 	echo "Fzf not found. Installing fzf..."
 	git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-	~/.fzf/install
+	sudo ~/.fzf/install
 fi
 
 # Install fzf if not installed
 if ! command_exists starship; then
 	echo "Starship not found. Installing starship..."
-	curl -sS https://starship.rs/install.sh | sh
+	curl -sS https://starship.rs/install.sh | sudo sh
 fi
 
 if ! command_exists zoxide; then
 	echo "zoxide not found. installing zoxide..."
-	curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
-fi
-
-if [ -d "~/.tmux/plugins/tpm" ]; then
-	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/time
+	curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sudo sh
 fi
 
 # Install tmux if not installed
@@ -49,14 +45,18 @@ if ! command_exists tmux; then
 	sudo apt install -y tmux
 fi
 
+if [ -d "~/.tmux/plugins/tpm" ]; then
+	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/time
+fi
+
 # Install stow if not installed
-if ! command_exists tmux; then
+if ! command_exists stow; then
 	echo "Stow not found. Installing stow..."
 	sudo apt install -y stow
 fi
 
 # Install nvim if not installed
-if ! command_exists tmux; then
+if ! command_exists nvim; then
 	echo "Nvim not found. Installing nvim..."
 	sudo sh ./nvim/install_nvim.sh
 fi
