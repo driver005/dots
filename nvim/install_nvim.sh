@@ -12,7 +12,7 @@ if ! command_exists nvim; then
 	if command_exists apt; then
 		sudo apt update
 		#sudo apt install -y neovim
-		curl -LO nvim.tar.gz https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
 		tar xf nvim.tar.gz neovim
 		sudo install neovim -D -t /usr/local/bin/
   		#sudo rm -rf /opt/nvim
