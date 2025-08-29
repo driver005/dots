@@ -14,7 +14,7 @@ if ! command_exists nvim; then
 		#sudo apt install -y neovim
 		# Download the latest Neovim tarball
 
-  		mkdir -p ./tmp
+  		mkdir -p "tmp"
 		cd tmp
 		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
 
