@@ -19,7 +19,7 @@ if ! command_exists nvim; then
 		tar -xvzf nvim.tar.gz --strip-components=2 nvim-linux-x86_64/bin/nvim
 
 		# Clean up tarball
-		rm nvim.tar.gz
+		#rm nvim.tar.gz
   		#sudo rm -rf /opt/nvim
 		#sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz	
  	# For RedHat/CentOS-based systems
