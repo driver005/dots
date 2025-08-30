@@ -61,7 +61,7 @@ if ! command_exists nvim; then
 	./nvim/install_nvim.sh
 fi
 
-sudo apt install build-essentials
+sudo apt install build-essential
 
 stow .
 
