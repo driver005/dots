@@ -61,6 +61,8 @@ if ! command_exists nvim; then
 	./nvim/install_nvim.sh
 fi
 
+sudo apt install build-essentials
+
 stow .
 
 tmux new-session -d -s rtb123
