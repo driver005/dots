@@ -11,7 +11,7 @@ if ! command_exists nvim; then
 	# For Debian/Ubuntu-based systems
 	if command_exists apt; then
 		# Download the latest Neovim tarball
-		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz"
 		sudo rm -rf /opt/nvim
 		sudo tar -C /opt -xzf nvim.tar.gz
 
