@@ -74,6 +74,12 @@ if ! command_exists clangd; then
 	sudo apt-get install -y clangd
 fi
 
+# Install luarocks if not installed
+if ! command_exists luarocks; then
+	echo "luarocks not found. Installing luarocks..."
+	sudo apt-get install -y luarocks
+fi
+
 # Install ast-grep if not installed
 if ! command_exists sg; then
 	echo "ast-grep not found. Installing ast-grep..."
