@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set a default value for the ARCH variable
-ARCH="arm64"
+ARCH="x86_64"
 
 # Check if the user provided a command-line argument
 if [ -n "$1" ]; then
