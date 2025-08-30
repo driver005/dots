@@ -15,7 +15,7 @@ if ! command_exists nvim; then
 		sudo rm -rf /opt/nvim
 		sudo tar -C /opt -xzf nvim.tar.gz
 
-  		export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+		echo 'export PATH="$PATH:/opt/nvim-linux-x86_64/bin"' >> ~/.bashrc
 		# Clean up tarball
 		rm nvim.tar.gz
  	# For RedHat/CentOS-based systems
