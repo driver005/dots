@@ -3,6 +3,7 @@
 Add https://www.nerdfonts.com/ to terminal!!!
 
 # Setup Nerd Fonts in Chrome OS terminal
+## https://gist.github.com/izzqz/af36c5bbde67ffff0f7614cf738d75a5
 
 Press `Ctr + Shift + j` to open devtools console in crostini terminal.
 
