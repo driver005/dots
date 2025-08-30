@@ -62,7 +62,20 @@ if ! command_exists nvim; then
 	./nvim/install_nvim.sh
 fi
 
-sudo apt install build-essential
+# Install ripgrep if not installed
+if ! command_exists rg; then
+	echo "Ŕipgrep not found. Installing ripgrep..."
+	sudo apt-get install -y ripgrep
+fi
+
+# Install clangd if not installed
+if ! command_exists clangd; then
+	echo "clangd not found. Installing clangd..."
+	sudo apt-get install -y clangd
+fi
+
+# For c++
+sudo apt install -y build-essential
 
 stow .
 
