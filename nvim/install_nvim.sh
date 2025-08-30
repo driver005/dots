@@ -12,13 +12,14 @@ if ! command_exists nvim; then
 	if command_exists apt; then
 		mkdir -p "tmp"
 		cd tmp
-  
+
+  		ARCH="arm64"
 		# Download the latest Neovim tarball
-		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz"
+		curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-{$ARCH}.tar.gz"
 		#curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
 
   		# Extract and install Neovim in one step
-		tar -xvzf nvim.tar.gz --strip-components=2 nvim-linux-x86_64/bin/nvim
+		tar -xvzf nvim.tar.gz --strip-components=2 nvim-linux-{$ARCH}/bin/nvim
 		sudo install nvim -D -t /usr/local/bin/
 
 		# Clean up tarball
