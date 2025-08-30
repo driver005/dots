@@ -10,9 +10,6 @@ if ! command_exists nvim; then
 	echo "Neovim not found. Installing Neovim..."
 	# For Debian/Ubuntu-based systems
 	if command_exists apt; then
-		mkdir -p "tmp"
-		cd tmp
-
   		ARCH="arm64"
 		# Download the latest Neovim tarball
 		curl -Lo "nvim.tar.gz" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-$ARCH.tar.gz"
@@ -24,14 +21,6 @@ if ! command_exists nvim; then
 		echo "export PATH=\"\$PATH:/opt/nvim-linux-$ARCH/bin\"" >> ~/.bashrc
 		# Clean up tarball
 		rm nvim.tar.gz
-
-  		# Extract and install Neovim in one step
-		tar -xvzf "nvim.tar.gz" --strip-components=2 "nvim-linux-$ARCH/bin/nvim"
-		sudo install nvim -D -t /usr/local/bin/
-
-		# Clean up tarball
-		rm nvim.tar.gz
-  		cd ..
  	# For RedHat/CentOS-based systems
 	elif command_exists dnf; then
 		sudo dnf install -y neovim
