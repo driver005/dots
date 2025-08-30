@@ -17,6 +17,13 @@ if ! command_exists nvim; then
 		# Download the latest Neovim tarball
 		curl -Lo "nvim.tar.gz" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-$ARCH.tar.gz"
 		#curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+  
+   		sudo rm -rf /opt/nvim
+		sudo tar -C /opt -xzf nvim.tar.gz
+
+		echo "export PATH=\"\$PATH:/opt/nvim-linux-$ARCH/bin\"" >> ~/.bashrc
+		# Clean up tarball
+		rm nvim.tar.gz
 
   		# Extract and install Neovim in one step
 		tar -xvzf "nvim.tar.gz" --strip-components=2 "nvim-linux-$ARCH/bin/nvim"
