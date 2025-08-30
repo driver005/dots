@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Set a default value for the ARCH variable
+ARCH="arm64"
+
+# Check if the user provided a command-line argument
+if [ -n "$1" ]; then
+    ARCH="$1"
+fi
+
+# Now you can use the ARCH variable in your 'make' command
+echo "Building nvin for architecture: $ARCH"
+
 # Function to check if a command exists
 command_exists() {
 	command -v "$1" &>/dev/null
@@ -10,15 +21,14 @@ if ! command_exists nvim; then
 	echo "Neovim not found. Installing Neovim..."
 	# For Debian/Ubuntu-based systems
 	if command_exists apt; then
-  		ARCH="arm64"
 		# Download the latest Neovim tarball
-		curl -Lo "nvim.tar.gz" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-$ARCH.tar.gz"
+		curl -Lo "nvim.tar.gz" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH}.tar.gz"
 		#curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
   
    		sudo rm -rf /opt/nvim
 		sudo tar -C /opt -xzf nvim.tar.gz
 
-		echo "export PATH=\"\$PATH:/opt/nvim-linux-$ARCH/bin\"" >> ~/.bashrc
+		echo "export PATH=\"\$PATH:/opt/nvim-linux-${ARCH}/bin\"" >> ~/.bashrc
 		# Clean up tarball
 		rm nvim.tar.gz
  	# For RedHat/CentOS-based systems
@@ -46,7 +56,7 @@ fi
 if ! command_exists lazygit; then
 	echo "Lazygit not found. Installing Lazygit..."
 	LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
-	curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+	curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz"
 	tar xf lazygit.tar.gz lazygit
 	sudo install lazygit -D -t /usr/local/bin/
 fi
