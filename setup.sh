@@ -74,6 +74,14 @@ if ! command_exists clangd; then
 	sudo apt-get install -y clangd
 fi
 
+# Install ast-grep if not installed
+if ! command_exists sg; then
+	echo "ast-grep not found. Installing ast-grep..."
+	wget -qO ast-grep.zip https://github.com/ast-grep/ast-grep/releases/latest/download/app-x86_64-unknown-linux-gnu.zip
+ 	sudo unzip -q ast-grep.zip -d /usr/local/bin sg
+  	rm -rf ast-grep.zip
+fi
+
 # For c++
 sudo apt install -y build-essential
 
