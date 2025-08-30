@@ -32,6 +32,7 @@ fi
 if ! command_exists starship; then
 	echo "Starship not found. Installing starship..."
 	curl -sS https://starship.rs/install.sh | sudo sh
+ 	echo 'eval "$(starship init bash)"' >> ~/.bashrc
 fi
 
 if ! command_exists zoxide; then
