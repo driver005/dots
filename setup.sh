@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+# Check if the first argument is provided
+if [ -z "$1" ]; then
+    echo "Error: You must provide an architecture (e.g., 'x86_64' or 'amd64')."
+    echo "Usage: $0 <architecture>"
+    exit 1
+fi
+
+ARCH="$1"
+echo "Building for architecture: $ARCH"
+
 # function to check if a command exists
 command_exists() {
 	command -v "$1" &>/dev/null
@@ -56,12 +66,6 @@ if ! command_exists stow; then
 	sudo apt install -y stow
 fi
 
-# Install nvim if not installed
-if ! command_exists nvim; then
-	echo "Nvim not found. Installing nvim..."
-	./nvim/install_nvim.sh
-fi
-
 # Install ripgrep if not installed
 if ! command_exists rg; then
 	echo "Ŕipgrep not found. Installing ripgrep..."
@@ -86,6 +90,12 @@ if ! command_exists sg; then
 	wget -qO ast-grep.zip https://github.com/ast-grep/ast-grep/releases/latest/download/app-x86_64-unknown-linux-gnu.zip
  	sudo unzip -q ast-grep.zip -d /usr/local/bin sg
   	rm -rf ast-grep.zip
+fi
+
+# Install nvim if not installed
+if ! command_exists nvim; then
+	echo "Nvim not found. Installing nvim..."
+	./nvim/install_nvim.sh ${ARCH}
 fi
 
 # For c++
