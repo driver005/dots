@@ -3,6 +3,7 @@
 Add https://www.nerdfonts.com/ to terminal!!!
 
 # Run
-´´´bash
+
+```bash
 ./setup.sh
-´´´
+```
