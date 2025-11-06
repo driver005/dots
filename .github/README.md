@@ -1,4 +1,8 @@
 # CUSTOM
+## GIT
+- git remote add upstream https://github.com/end-4/dots-hyprland
+- git fetch upstream
+- git rebase upstream/main
 ## GPU
 - prime-run (https://wiki.garudalinux.org/en/optimus-device)
 - cd /usr/share/applications
