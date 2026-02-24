@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Check if the first argument is provided
+# Auto-detect architecture if not provided
 if [ -z "$1" ]; then
-    echo "Error: You must provide an architecture (e.g., 'x86_64' or 'amd64')."
-    echo "Usage: $0 <architecture>"
-    exit 1
+    ARCH=$(uname -m)
+    echo "No architecture provided. Auto-detected: $ARCH"
+else
+    ARCH="$1"
 fi
-ARCH="$1"
+
 echo "Building for architecture: $ARCH"
 
 # function to check if a command exists
