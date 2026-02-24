@@ -136,4 +136,9 @@ stow .
 tmux new-session -d -s rtb123
 tmux send-keys "tmux source ~/.config/tmux/tmux.conf" C-m
 tmux kill-session -t rtb123
-zsh -c "source ~/.config/zshrc/.zshrc"
+# Source zshrc if it exists
+if [ -f "$HOME/.config/zshrc/.zshrc" ]; then
+    zsh -c "source ~/.config/zshrc/.zshrc"
+else
+    echo "Warning: ~/.config/zshrc/.zshrc not found, skipping..."
+fi
