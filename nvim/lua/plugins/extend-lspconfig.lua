@@ -14,6 +14,10 @@ return {
             "--header-insertion=iwyu",
           },
         },
+        served = {
+          -- Works perfectly out of the box with default settings!
+          -- If you need specific init options down the road, they go here.
+        },
       },
     },
   },

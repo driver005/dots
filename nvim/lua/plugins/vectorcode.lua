@@ -1,0 +1,529 @@
+return {}
+-- return {
+--   -- ── VectorCode ────────────────────────────────────────────────────────
+--   {
+--     "Davidyz/VectorCode",
+--     version = "*",
+--     build = "uv tool upgrade vectorcode",
+--     dependencies = { "nvim-lua/plenary.nvim" },
+--     opts = {
+--       cli_cmds = {
+--         vectorcode = vim.fn.expand("~/.local/bin/vectorcode"),
+--       },
+--       async_opts = {
+--         debounce = 500,
+--         events = { "BufWritePost", "InsertEnter" },
+--         exclude_this = true,
+--         n_query = 10,
+--         notify = false,
+--         run_on_register = false,
+--       },
+--       async_backend = "lsp",
+--       exclude_this = true,
+--       n_query = 10,
+--       notify = false,
+--       timeout_ms = 5000,
+--       on_setup = {
+--         update = false,
+--         lsp = true,
+--       },
+--       sync_log_env_var = false,
+--     },
+--     config = function(_, opts)
+--       -- Silence spurious LSP detach warnings
+--       local orig = vim.lsp.buf_detach_client
+--       vim.lsp.buf_detach_client = function(bufnr, client_id)
+--         pcall(orig, bufnr, client_id)
+--       end
+--
+--       require("vectorcode").setup(opts)
+--
+--       -- Kill any stale vectorcode/chromadb processes from previous sessions
+--       vim.system({ "pkill", "-f", "vectorcode" }, {}, function() end)
+--       vim.system({ "pkill", "-f", "chromadb.cli" }, {}, function() end)
+--
+--       local cacher = require("vectorcode.cacher").lsp
+--       local vc_cmd = opts.cli_cmds and opts.cli_cmds.vectorcode or "vectorcode"
+--
+--       -- ── Global process lock: only ONE vectorcode CLI runs at a time ───
+--       local vc_running = false
+--       local vc_queue = nil
+--
+--       local function run_vc(cmd, cwd, on_done)
+--         if vc_running then
+--           vc_queue = { cmd = cmd, cwd = cwd, on_done = on_done }
+--           return
+--         end
+--         vim.system({ "pgrep", "-f", "vectorcode vectorise\\|vectorcode update" }, {}, function(pgrep)
+--           if pgrep.code == 0 then
+--             vim.defer_fn(function()
+--               run_vc(cmd, cwd, on_done)
+--             end, 2000)
+--             return
+--           end
+--           vc_running = true
+--           vim.system(cmd, { cwd = cwd }, function(result)
+--             vc_running = false
+--             if on_done then
+--               on_done(result)
+--             end
+--             if vc_queue then
+--               local next = vc_queue
+--               vc_queue = nil
+--               vim.schedule(function()
+--                 run_vc(next.cmd, next.cwd, next.on_done)
+--               end)
+--             end
+--           end)
+--         end)
+--       end
+--
+--       -- ── Spinner ───────────────────────────────────────────────────────
+--       local spinner_frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--       local spinner_idx = 0
+--       local spinner_timer = nil
+--
+--       local function start_spinner(label)
+--         spinner_idx = 0
+--         if spinner_timer then
+--           spinner_timer:stop()
+--           spinner_timer:close()
+--         end
+--         spinner_timer = vim.uv.new_timer()
+--         spinner_timer:start(
+--           0,
+--           120,
+--           vim.schedule_wrap(function()
+--             spinner_idx = (spinner_idx % #spinner_frames) + 1
+--             vim.g.vectorcode_progress = spinner_frames[spinner_idx] .. " " .. label
+--             pcall(function()
+--               require("lualine").refresh()
+--             end)
+--           end)
+--         )
+--       end
+--
+--       local function stop_spinner()
+--         if spinner_timer then
+--           spinner_timer:stop()
+--           spinner_timer:close()
+--           spinner_timer = nil
+--         end
+--         vim.g.vectorcode_progress = nil
+--         pcall(function()
+--           require("lualine").refresh()
+--         end)
+--       end
+--
+--       -- ── Stats parser ─────────────────────────────────────────────────
+--       local function parse_stats(stdout)
+--         if not stdout or stdout == "" then
+--           return nil
+--         end
+--         local ok, data = pcall(vim.json.decode, stdout)
+--         if not ok or type(data) ~= "table" then
+--           return nil
+--         end
+--         local parts = {}
+--         if (data.add or 0) > 0 then
+--           table.insert(parts, data.add .. " added")
+--         end
+--         if (data.update or 0) > 0 then
+--           table.insert(parts, data.update .. " updated")
+--         end
+--         if (data.removed or 0) > 0 then
+--           table.insert(parts, data.removed .. " removed")
+--         end
+--         if (data.skip or 0) > 0 then
+--           table.insert(parts, data.skip .. " skipped")
+--         end
+--         if (data.fail or 0) > 0 then
+--           table.insert(parts, data.fail .. " failed")
+--         end
+--         if #parts == 0 then
+--           return "no changes"
+--         end
+--         return table.concat(parts, ", ")
+--       end
+--
+--       -- ── Write project config ─────────────────────────────────────────
+--       local function write_project_config(root)
+--         local config_path = root .. "/.vectorcode/config.json"
+--         if vim.fn.filereadable(config_path) == 0 then
+--           local f = io.open(config_path, "w")
+--           if f then
+--             f:write(
+--               '{"chunk_size":-1,"filetype_map":{"cpp":["\\\\.cpp$","\\\\.cppm$","\\\\.cc$","\\\\.cxx$","\\\\.hpp$","\\\\.h$"]}}'
+--             )
+--             f:close()
+--           end
+--         end
+--       end
+--
+--       -- ── Vectorise whole project ───────────────────────────────────────
+--       local function do_vectorise(root)
+--         local name = vim.fn.fnamemodify(root, ":t")
+--         vim.schedule(function()
+--           start_spinner("vectorcode indexing " .. name)
+--         end)
+--         run_vc({ vc_cmd, "vectorise", "--pipe", "--project_root", root, "--recursive", "." }, root, function(result)
+--           vim.schedule(function()
+--             stop_spinner()
+--             if result.code == 0 then
+--               local stats = parse_stats(result.stdout)
+--               vim.notify("VectorCode: indexed " .. name .. " — " .. (stats or "done"), vim.log.levels.INFO)
+--             else
+--               vim.notify("VectorCode vectorise failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--             end
+--           end)
+--         end)
+--       end
+--
+--       -- ── Update already-indexed project ───────────────────────────────
+--       local function do_update(root)
+--         local name = vim.fn.fnamemodify(root, ":t")
+--         vim.schedule(function()
+--           start_spinner("vectorcode updating " .. name)
+--         end)
+--         run_vc({ vc_cmd, "vectorise", "--pipe", "--project_root", root, "--recursive", "." }, root, function(result)
+--           vim.schedule(function()
+--             stop_spinner()
+--             if result.code == 0 then
+--               local stats = parse_stats(result.stdout)
+--               if stats and stats ~= "no changes" then
+--                 vim.notify("VectorCode: updated " .. name .. " — " .. stats, vim.log.levels.INFO)
+--               end
+--             else
+--               vim.notify("VectorCode update failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--             end
+--           end)
+--         end)
+--       end
+--
+--       -- ── Kill stale CLI processes ──────────────────────────────────────
+--       local function kill_stale_vc_processes()
+--         vim.system({ "pkill", "-f", "vectorcode.*(vectorise|update|query|init|check)" }, {}, nil)
+--       end
+--
+--       -- ── Init + check + vectorise or update ───────────────────────────
+--       local function auto_setup_project(root)
+--         local name = vim.fn.fnamemodify(root, ":t")
+--
+--         kill_stale_vc_processes()
+--         vc_running = false
+--         vc_queue = nil
+--
+--         local function step_vectorise_or_update(already_indexed)
+--           write_project_config(root)
+--           if already_indexed then
+--             do_update(root)
+--           else
+--             vim.schedule(function()
+--               vim.notify("VectorCode: indexing " .. name, vim.log.levels.INFO)
+--             end)
+--             do_vectorise(root)
+--           end
+--         end
+--
+--         local function step_check()
+--           run_vc({ vc_cmd, "check", "--project_root", root }, root, function(result)
+--             vim.schedule(function()
+--               step_vectorise_or_update(result.code == 0)
+--             end)
+--           end)
+--         end
+--
+--         if vim.fn.isdirectory(root .. "/.vectorcode") == 0 then
+--           vim.notify("VectorCode: initialising " .. name, vim.log.levels.INFO)
+--           run_vc({ vc_cmd, "init", "--project_root", root }, root, function(init_result)
+--             if init_result.code ~= 0 then
+--               vim.schedule(function()
+--                 vim.notify("VectorCode init failed: " .. (init_result.stderr or ""), vim.log.levels.WARN)
+--               end)
+--               return
+--             end
+--             vim.schedule(step_check)
+--           end)
+--         else
+--           step_check()
+--         end
+--       end
+--
+--       -- ── Per-file save debounce ────────────────────────────────────────
+--       local last_write_times = {}
+--
+--       -- ── Autocmds ─────────────────────────────────────────────────────
+--       local handled_roots = {}
+--
+--       vim.api.nvim_create_autocmd("BufReadPost", {
+--         desc = "Auto-setup VectorCode for project and register buffer",
+--         callback = function(args)
+--           -- local bufname = vim.api.nvim_buf_get_name(args.buf)
+--           -- if bufname == "" or vim.bo[args.buf].buftype ~= "" then
+--           --   return
+--           -- end
+--
+--           -- local root = vim.fs.root(args.buf, { ".git", ".vectorcode" }) or vim.fn.fnamemodify(bufname, ":h")
+--           --
+--           -- if not handled_roots[root] then
+--           --   handled_roots[root] = true
+--           --   vim.defer_fn(function()
+--           --     auto_setup_project(root)
+--           --   end, 2000)
+--           -- end
+--
+--           cacher.async_check("config", function()
+--             cacher.register_buffer(args.buf, {
+--               n_query = 10,
+--               debounce = 500,
+--               notify = false,
+--               run_on_register = false,
+--             })
+--           end, nil)
+--         end,
+--       })
+--
+--       vim.api.nvim_create_autocmd("BufWritePost", {
+--         desc = "Re-vectorise saved file in VectorCode",
+--         callback = function(args)
+--           local bufname = vim.api.nvim_buf_get_name(args.buf)
+--           if bufname == "" or vim.bo[args.buf].buftype ~= "" then
+--             return
+--           end
+--           local root = vim.fs.root(args.buf, { ".git", ".vectorcode" })
+--           if not root or vim.fn.isdirectory(root .. "/.vectorcode") == 0 then
+--             return
+--           end
+--
+--           local now = vim.uv.now()
+--           if last_write_times[bufname] and (now - last_write_times[bufname]) < 10000 then
+--             return
+--           end
+--           last_write_times[bufname] = now
+--
+--           local fname = vim.fn.fnamemodify(bufname, ":t")
+--           run_vc({ vc_cmd, "vectorise", "--pipe", "--project_root", root, bufname }, root, function(result)
+--             vim.schedule(function()
+--               if result.code == 0 then
+--                 local stats = parse_stats(result.stdout)
+--                 if stats and stats ~= "no changes" then
+--                   vim.notify("VectorCode: " .. fname .. " — " .. stats, vim.log.levels.INFO)
+--                 end
+--               end
+--             end)
+--           end)
+--         end,
+--       })
+--
+--       -- ── Which-key group ───────────────────────────────────────────────
+--       local wk_ok, wk = pcall(require, "which-key")
+--       if wk_ok then
+--         wk.add({
+--           { "<leader>av", group = "VectorCode", icon = "󰘽" },
+--           { "<leader>avk", desc = "Kill stale processes" },
+--         })
+--       end
+--     end,
+--
+--     keys = {
+--       {
+--         "<leader>avk",
+--         function()
+--           vim.fn.system("pkill -f 'vectorcode.*(vectorise|update|query|init|check)'")
+--           vim.g.vectorcode_progress = nil
+--           pcall(function()
+--             require("lualine").refresh()
+--           end)
+--           vim.notify("VectorCode: killed stale processes", vim.log.levels.INFO)
+--         end,
+--         desc = "Kill stale VectorCode processes",
+--       },
+--       {
+--         "<leader>avs",
+--         "<cmd>VectorCode ls<cr>",
+--         desc = "List indexed projects",
+--       },
+--       {
+--         "<leader>avq",
+--         function()
+--           local query = vim.fn.input("VectorCode query: ")
+--           if query == "" then
+--             return
+--           end
+--           local root = vim.fs.root(0, { ".git", ".vectorcode" })
+--           if not root then
+--             vim.notify("VectorCode: no project root found", vim.log.levels.WARN)
+--             return
+--           end
+--           local cmd = vim.fn.expand("~/.local/bin/vectorcode")
+--           vim.system({ cmd, "query", "--project_root", root, query }, { cwd = root }, function(result)
+--             vim.schedule(function()
+--               if result.code == 0 and result.stdout ~= "" then
+--                 vim.notify(result.stdout, vim.log.levels.INFO)
+--               else
+--                 vim.notify("VectorCode query failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--               end
+--             end)
+--           end)
+--         end,
+--         desc = "Query codebase",
+--       },
+--       {
+--         "<leader>avu",
+--         function()
+--           local root = vim.fs.root(0, { ".git", ".vectorcode" })
+--           if not root then
+--             vim.notify("VectorCode: no project root found", vim.log.levels.WARN)
+--             return
+--           end
+--           local name = vim.fn.fnamemodify(root, ":t")
+--           local cmd = vim.fn.expand("~/.local/bin/vectorcode")
+--           -- NOTE: reuses module-level start_spinner/stop_spinner defined in config()
+--           -- but keymaps run outside that closure, so we inline a lightweight version.
+--           local t_frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--           local t_idx = 0
+--           local t = vim.uv.new_timer()
+--           t:start(
+--             0,
+--             120,
+--             vim.schedule_wrap(function()
+--               t_idx = (t_idx % #t_frames) + 1
+--               vim.g.vectorcode_progress = t_frames[t_idx] .. " updating " .. name
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--             end)
+--           )
+--           vim.system(
+--             { cmd, "vectorise", "--pipe", "--project_root", root, "--recursive", "." },
+--             { cwd = root },
+--             function(result)
+--               vim.schedule(function()
+--                 t:stop()
+--                 t:close()
+--                 vim.g.vectorcode_progress = nil
+--                 pcall(function()
+--                   require("lualine").refresh()
+--                 end)
+--                 if result.code == 0 then
+--                   local ok, data = pcall(vim.json.decode, result.stdout or "")
+--                   local add = ok and data and (data.add or 0) or 0
+--                   local upd = ok and data and (data.update or 0) or 0
+--                   local parts = {}
+--                   if add > 0 then
+--                     table.insert(parts, add .. " added")
+--                   end
+--                   if upd > 0 then
+--                     table.insert(parts, upd .. " updated")
+--                   end
+--                   local stats = #parts > 0 and table.concat(parts, ", ") or "done"
+--                   vim.notify("VectorCode: updated " .. name .. " — " .. stats, vim.log.levels.INFO)
+--                 else
+--                   vim.notify("VectorCode update failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--                 end
+--               end)
+--             end
+--           )
+--         end,
+--         desc = "Update project index",
+--       },
+--       {
+--         "<leader>avi",
+--         function()
+--           local root = vim.fs.root(0, { ".git", ".vectorcode" })
+--           if not root then
+--             vim.notify("VectorCode: no project root found", vim.log.levels.WARN)
+--             return
+--           end
+--           local name = vim.fn.fnamemodify(root, ":t")
+--           local cmd = vim.fn.expand("~/.local/bin/vectorcode")
+--           local t_frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--           local t_idx = 0
+--           local t = vim.uv.new_timer()
+--           t:start(
+--             0,
+--             120,
+--             vim.schedule_wrap(function()
+--               t_idx = (t_idx % #t_frames) + 1
+--               vim.g.vectorcode_progress = t_frames[t_idx] .. " indexing " .. name
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--             end)
+--           )
+--           vim.system(
+--             { cmd, "vectorise", "--pipe", "--project_root", root, "--recursive", "." },
+--             { cwd = root },
+--             function(result)
+--               vim.schedule(function()
+--                 t:stop()
+--                 t:close()
+--                 vim.g.vectorcode_progress = nil
+--                 pcall(function()
+--                   require("lualine").refresh()
+--                 end)
+--                 if result.code == 0 then
+--                   local ok, data = pcall(vim.json.decode, result.stdout or "")
+--                   local stats = ok and data and tostring(data.add or 0) .. " added" or "done"
+--                   vim.notify("VectorCode: indexed " .. name .. " — " .. stats, vim.log.levels.INFO)
+--                 else
+--                   vim.notify("VectorCode vectorise failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--                 end
+--               end)
+--             end
+--           )
+--         end,
+--         desc = "Re-index whole project",
+--       },
+--       {
+--         "<leader>avr",
+--         function()
+--           local bufnr = vim.api.nvim_get_current_buf()
+--           local cacher = require("vectorcode.cacher").lsp
+--           cacher.deregister_buffer(bufnr)
+--           cacher.async_check("config", function()
+--             cacher.register_buffer(bufnr, {
+--               n_query = 10,
+--               debounce = 500,
+--               notify = true,
+--               run_on_register = true,
+--             })
+--           end, nil)
+--           vim.notify("VectorCode: buffer cache restarted", vim.log.levels.INFO)
+--         end,
+--         desc = "Restart buffer cache",
+--       },
+--       {
+--         "<leader>avd",
+--         function()
+--           local root = vim.fs.root(0, { ".git", ".vectorcode" })
+--           if not root then
+--             vim.notify("VectorCode: no project root found", vim.log.levels.WARN)
+--             return
+--           end
+--           local name = vim.fn.fnamemodify(root, ":t")
+--           local confirm = vim.fn.confirm("Drop VectorCode index for " .. name .. "?", "&Yes\n&No", 2)
+--           if confirm ~= 1 then
+--             return
+--           end
+--           local cmd = vim.fn.expand("~/.local/bin/vectorcode")
+--           vim.system({ cmd, "drop", "--project_root", root }, { cwd = root }, function(result)
+--             vim.schedule(function()
+--               if result.code == 0 then
+--                 vim.notify("VectorCode: dropped index for " .. name, vim.log.levels.INFO)
+--               else
+--                 vim.notify("VectorCode drop failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--               end
+--             end)
+--           end)
+--         end,
+--         desc = "Drop project index",
+--       },
+--       {
+--         "<leader>avh",
+--         "<cmd>checkhealth vectorcode<cr>",
+--         desc = "Health check",
+--       },
+--     },
+--   },
+-- }

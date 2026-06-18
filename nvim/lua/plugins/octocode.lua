@@ -1,0 +1,324 @@
+return {}
+-- return {
+--   {
+--     "muvon/octocode.nvim",
+--     event = "VeryLazy",
+--     build = "cargo install --git https://github.com/Muvon/octocode --features huggingface --force",
+--     cond = function()
+--       return vim.fn.executable("octocode") == 1
+--     end,
+--     opts = {
+--       keymaps = {
+--         toggle = "<leader>aos",
+--       },
+--       command = "octocode",
+--       silent = false,
+--     },
+--     config = function(_, opts)
+--       require("octocode").setup(opts)
+--
+--       -- ── Track watch state for lualine ─────────────────────────────────
+--       local watch = require("octocode.watch")
+--       local orig_start = watch.start
+--       local orig_stop = watch.stop
+--       watch.start = function(...)
+--         vim.g.octocode_watch = true
+--         pcall(function()
+--           require("lualine").refresh()
+--         end)
+--         return orig_start(...)
+--       end
+--       watch.stop = function(...)
+--         vim.g.octocode_watch = false
+--         pcall(function()
+--           require("lualine").refresh()
+--         end)
+--         return orig_stop(...)
+--       end
+--
+--       -- ── Spinner helpers ───────────────────────────────────────────────
+--       local spinner_frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--       local spinner_timer = nil
+--       local spinner_idx = 0
+--
+--       local function start_spinner(label)
+--         spinner_idx = 0
+--         if spinner_timer then
+--           spinner_timer:stop()
+--           spinner_timer:close()
+--         end
+--         spinner_timer = vim.uv.new_timer()
+--         spinner_timer:start(
+--           0,
+--           120,
+--           vim.schedule_wrap(function()
+--             spinner_idx = (spinner_idx % #spinner_frames) + 1
+--             vim.g.octocode_progress = spinner_frames[spinner_idx] .. " " .. label
+--             pcall(function()
+--               require("lualine").refresh()
+--             end)
+--           end)
+--         )
+--       end
+--
+--       local function stop_spinner()
+--         if spinner_timer then
+--           spinner_timer:stop()
+--           spinner_timer:close()
+--           spinner_timer = nil
+--         end
+--         vim.g.octocode_progress = nil
+--         pcall(function()
+--           require("lualine").refresh()
+--         end)
+--       end
+--
+--       -- ── Explicit C++ indexing for .cppm/.cpp/.hpp files ──────────────
+--       -- octocode doesn't recognize .cppm by default, so we index them
+--       -- explicitly one by one via find + xargs after the main index runs.
+--       local function do_index_cpp_explicit(root)
+--         local name = vim.fn.fnamemodify(root, ":t")
+--         vim.schedule(function()
+--           start_spinner("octocode C++ explicit index " .. name)
+--         end)
+--         local cmd = string.format(
+--           "cd '%s' && find . -type f \\( -name '*.cpp' -o -name '*.hpp' -o -name '*.cppm' -o -name '*.cc' -o -name '*.h' -o -name '*.cxx' \\) -not -path '*/.git/*' -not -path '*/build/*' -not -path '*/.xmake/*' -print0 | xargs -0 -n 1 %s index --no-git 2>&1",
+--           root,
+--           opts.command or "octocode"
+--         )
+--         vim.system({ "bash", "-c", cmd }, {}, function(result)
+--           vim.schedule(function()
+--             stop_spinner()
+--             if result.code == 0 then
+--               vim.notify("Octocode: C++ explicit index complete for " .. name, vim.log.levels.INFO)
+--             else
+--               vim.notify("Octocode explicit index failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--             end
+--           end)
+--         end)
+--       end
+--
+--       -- ── Auto-index project if not yet indexed ─────────────────────────
+--       local handled_roots = {}
+--
+--       local function auto_index(root)
+--         if handled_roots[root] then
+--           return
+--         end
+--         handled_roots[root] = true
+--         -- Bump max_files in octocode config before indexing
+--         local config_path = vim.fn.expand("~/.local/share/octocode/config.toml")
+--         if vim.fn.filereadable(config_path) == 1 then
+--           vim.fn.system("sed -i 's/^max_files = .*/max_files = 500/' " .. config_path)
+--         end
+--         local name = vim.fn.fnamemodify(root, ":t")
+--         vim.system({ "octocode", "search", "test" }, { cwd = root }, function(result)
+--           if result.code ~= 0 then
+--             vim.schedule(function()
+--               vim.notify("Octocode: indexing " .. name .. "…", vim.log.levels.INFO)
+--               start_spinner("indexing " .. name)
+--             end)
+--             vim.system({ "octocode", "index", "--no-git" }, { cwd = root }, function(idx_result)
+--               vim.schedule(function()
+--                 stop_spinner()
+--                 if idx_result.code == 0 then
+--                   vim.notify("Octocode: indexed " .. name, vim.log.levels.INFO)
+--                   -- Now explicitly index C++ files that octocode misses (.cppm etc.)
+--                   do_index_cpp_explicit(root)
+--                 else
+--                   vim.notify("Octocode index failed: " .. (idx_result.stderr or ""), vim.log.levels.WARN)
+--                 end
+--               end)
+--             end)
+--           end
+--         end)
+--       end
+--
+--       -- ── Start watch immediately + auto-index on VimEnter ──────────────
+--       vim.api.nvim_create_autocmd("VimEnter", {
+--         once = true,
+--         desc = "Start octocode watch immediately on startup",
+--         callback = function()
+--           if vim.fn.executable("octocode") ~= 1 then
+--             vim.notify("Octocode: not found — run :Lazy build octocode.nvim or install manually", vim.log.levels.WARN)
+--             return
+--           end
+--           -- Start watch immediately, no delay
+--           watch.start()
+--           -- Auto-index current project after short defer to let Neovim finish loading
+--           vim.defer_fn(function()
+--             local root = vim.fs.root(0, { ".git" }) or vim.fn.getcwd()
+--             auto_index(root)
+--           end, 500)
+--         end,
+--       })
+--
+--       -- ── Auto-index on new project root ────────────────────────────────
+--       vim.api.nvim_create_autocmd("BufReadPost", {
+--         desc = "Auto-index new project with octocode",
+--         callback = function(args)
+--           if vim.fn.executable("octocode") ~= 1 then
+--             return
+--           end
+--           local bufname = vim.api.nvim_buf_get_name(args.buf)
+--           if bufname == "" or vim.bo[args.buf].buftype ~= "" then
+--             return
+--           end
+--           local root = vim.fs.root(args.buf, { ".git" }) or vim.fn.fnamemodify(bufname, ":h")
+--           auto_index(root)
+--         end,
+--       })
+--
+--       -- ── Which-key group ───────────────────────────────────────────────
+--       local wk_ok, wk = pcall(require, "which-key")
+--       if wk_ok then
+--         wk.add({ { "<leader>ao", group = "Octocode", icon = "󱃖" } })
+--       end
+--     end,
+--
+--     keys = {
+--       {
+--         "<leader>aoC",
+--         function()
+--           local root = vim.fs.root(0, { ".git" }) or vim.fn.getcwd()
+--           local name = vim.fn.fnamemodify(root, ":t")
+--           local frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--           local idx = 0
+--           local t = vim.uv.new_timer()
+--           t:start(
+--             0,
+--             120,
+--             vim.schedule_wrap(function()
+--               idx = (idx % #frames) + 1
+--               vim.g.octocode_progress = frames[idx] .. " C++ index " .. name
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--             end)
+--           )
+--           local cmd = string.format(
+--             "cd '%s' && find . -type f \\( -name '*.cpp' -o -name '*.hpp' -o -name '*.cppm' -o -name '*.cc' -o -name '*.h' -o -name '*.cxx' \\) -not -path '*/.git/*' -not -path '*/build/*' -not -path '*/.xmake/*' -print0 | xargs -0 -n 1 octocode index --no-git 2>&1",
+--             root
+--           )
+--           vim.system({ "bash", "-c", cmd }, {}, function(result)
+--             vim.schedule(function()
+--               t:stop()
+--               t:close()
+--               vim.g.octocode_progress = nil
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--               if result.code == 0 then
+--                 vim.notify("Octocode: C++ explicit index complete for " .. name, vim.log.levels.INFO)
+--               else
+--                 vim.notify("Octocode C++ index failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--               end
+--             end)
+--           end)
+--         end,
+--         desc = "Explicit C++ index (.cppm/.cpp/.hpp)",
+--       },
+--       {
+--         "<leader>aos",
+--         function()
+--           require("octocode.ui").toggle()
+--         end,
+--         desc = "Search codebase",
+--       },
+--       {
+--         "<leader>aoi",
+--         function()
+--           local root = vim.fs.root(0, { ".git" }) or vim.fn.getcwd()
+--           local name = vim.fn.fnamemodify(root, ":t")
+--           local frames = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
+--           local idx = 0
+--           local t = vim.uv.new_timer()
+--           t:start(
+--             0,
+--             120,
+--             vim.schedule_wrap(function()
+--               idx = (idx % #frames) + 1
+--               vim.g.octocode_progress = frames[idx] .. " indexing " .. name
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--             end)
+--           )
+--           vim.system({ "octocode", "index" }, { cwd = root }, function(result)
+--             vim.schedule(function()
+--               t:stop()
+--               t:close()
+--               vim.g.octocode_progress = nil
+--               pcall(function()
+--                 require("lualine").refresh()
+--               end)
+--               if result.code == 0 then
+--                 vim.notify("Octocode: indexed " .. name, vim.log.levels.INFO)
+--               else
+--                 vim.notify("Octocode index failed: " .. (result.stderr or ""), vim.log.levels.WARN)
+--               end
+--             end)
+--           end)
+--         end,
+--         desc = "Index project",
+--       },
+--       {
+--         "<leader>aow",
+--         function()
+--           require("octocode.watch").start()
+--           vim.notify("Octocode: watch started", vim.log.levels.INFO)
+--         end,
+--         desc = "Start watch (auto-index)",
+--       },
+--       {
+--         "<leader>aoW",
+--         function()
+--           require("octocode.watch").stop()
+--           vim.notify("Octocode: watch stopped", vim.log.levels.INFO)
+--         end,
+--         desc = "Stop watch",
+--       },
+--       {
+--         "<leader>aoq",
+--         function()
+--           local query = vim.fn.input("Octocode search: ")
+--           if query == "" then
+--             return
+--           end
+--           require("octocode.search").execute(query, "all", nil)
+--         end,
+--         desc = "Search (prompt)",
+--       },
+--       {
+--         "<leader>aoM",
+--         function()
+--           local root = vim.fs.root(0, { ".git" }) or vim.fn.getcwd()
+--           local mcp_path = vim.fn.expand("~/.config/mcp/servers.json")
+--           local f = io.open(mcp_path, "r")
+--           local current = f and f:read("*a") or "{}"
+--           if f then
+--             f:close()
+--           end
+--           local ok, data = pcall(vim.json.decode, current)
+--           if not ok then
+--             data = {}
+--           end
+--           data.mcpServers = data.mcpServers or {}
+--           data.mcpServers.octocode = {
+--             command = "octocode",
+--             args = { "mcp", "--path", root },
+--           }
+--           local out = io.open(mcp_path, "w")
+--           if out then
+--             out:write(vim.json.encode(data))
+--             out:close()
+--             vim.notify("Octocode MCP → " .. vim.fn.fnamemodify(root, ":t"), vim.log.levels.INFO)
+--           else
+--             vim.notify("Failed to write " .. mcp_path, vim.log.levels.ERROR)
+--           end
+--         end,
+--         desc = "Update MCP to current project",
+--       },
+--     },
+--   },
+-- }
