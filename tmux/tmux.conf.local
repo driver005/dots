@@ -1,0 +1,12 @@
+# Catppuccin Mocha + no-prefix which-key setup for Oh my tmux!
+# https://github.com/gpakosz/.tmux
+# Ctrl+Space opens the tmux-which-key root menu; there is no tmux prefix.
+#
+# Config is split under conf.d/ - keybindings.conf loads last so its manual
+# overrides win over whatever a plugin bound for itself. Oh my tmux!'s own
+# base config auto-installs/sources every @plugin declared in plugins.conf
+# on every launch/reload, so no manual tpm bootstrap line is needed here.
+source-file ~/dots/tmux/conf.d/general.conf
+source-file ~/dots/tmux/conf.d/theme.conf
+source-file ~/dots/tmux/conf.d/plugins.conf
+source-file ~/dots/tmux/conf.d/keybindings.conf

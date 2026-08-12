@@ -16,3 +16,9 @@
 #
 # You can remove these comments if you want or leave
 # them for future reference.
+
+# 2kabhishek/tdo note-taking CLI
+$env.NOTES_DIR = ($env.HOME | path join "notes")
+# Default editor
+$env.EDITOR = "nvim"
+$env.VISUAL = "nvim"

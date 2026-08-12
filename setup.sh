@@ -79,8 +79,10 @@ if ! command_exists tmux; then
     $PKG_INSTALL tmux
 fi
 
-if [ ! -d "~/.tmux/plugins/tpm" ]; then
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# Install clipboard tool for tmux-yank
+if ! command_exists wl-copy && ! command_exists xsel && ! command_exists xclip; then
+    echo "Installing wl-clipboard for tmux-yank..."
+    $PKG_INSTALL wl-clipboard
 fi
 
 # Install stow if not installed
@@ -93,6 +95,91 @@ fi
 if ! command_exists rg; then
     echo "Ripgrep not found. Installing ripgrep..."
     $PKG_INSTALL ripgrep
+fi
+
+# Install sysstat for tmux-cpu accurate readings
+if ! command_exists iostat; then
+    echo "sysstat not found. Installing sysstat..."
+    $PKG_INSTALL sysstat
+fi
+
+# Install tmux plugin dependencies
+if ! command_exists ruby; then
+    echo "ruby not found. Installing ruby (required by tmux-jump)..."
+    $PKG_INSTALL ruby
+fi
+
+# proxychains-ng + tor: for the tor.conf tmux variant (proxychains-wrapped
+# shells route traffic through Tor).
+if ! command_exists proxychains && ! command_exists proxychains4; then
+    echo "proxychains not found. Installing (required by tor.conf variant)..."
+    if command_exists pacman; then
+        $PKG_INSTALL proxychains-ng
+    else
+        $PKG_INSTALL proxychains4
+    fi
+fi
+if ! command_exists tor; then
+    echo "tor not found. Installing (required by tor.conf variant)..."
+    $PKG_INSTALL tor
+fi
+
+# libtmux: Python dep for tmux-window-name (smart window naming). Without
+# it the plugin silently no-ops and windows fall back to "bash".
+if ! python3 -c "import libtmux" 2>/dev/null; then
+    echo "libtmux not found. Installing (required by tmux-window-name)..."
+    if command_exists pacman; then
+        $PKG_INSTALL python-libtmux
+    else
+        python3 -m pip install --user libtmux 2>/dev/null || \
+            python3 -m pip install --user --break-system-packages libtmux
+    fi
+fi
+
+if ! command_exists cargo; then
+    echo "cargo not found. Installing cargo (required by tmux-thumbs)..."
+    if command_exists pacman; then
+        $PKG_INSTALL rust
+    else
+        $PKG_INSTALL cargo
+    fi
+fi
+
+if ! command_exists fpp; then
+    echo "fpp not found. Installing pathpicker (required by tmux-fpp)..."
+    if command_exists pacman; then
+        python3 -m pip install --user pathpicker 2>/dev/null || echo "Skipping pathpicker on pacman (install from AUR if needed)."
+    else
+        $PKG_INSTALL pathpicker || python3 -m pip install --user pathpicker
+    fi
+fi
+
+if ! command_exists urlview; then
+    echo "urlview not found. Installing urlview (required by tmux-urlview)..."
+    $PKG_INSTALL urlview 2>/dev/null || echo "Skipping urlview (install manually if needed)."
+fi
+
+if ! command_exists playerctl; then
+    echo "playerctl not found. Installing playerctl (required by tmux-now-playing)..."
+    $PKG_INSTALL playerctl 2>/dev/null || echo "Skipping playerctl (now-playing will be disabled)."
+fi
+
+if ! command_exists fdfind && ! command_exists fd; then
+    echo "fd not found. Installing fd (required by tmux-fzf-open-files-nvim)..."
+    if command_exists pacman; then
+        $PKG_INSTALL fd
+    else
+        $PKG_INSTALL fd-find
+    fi
+fi
+
+if ! command_exists notify-send; then
+    echo "notify-send not found. Installing libnotify (required by tmux-notify)..."
+    if command_exists pacman; then
+        $PKG_INSTALL libnotify
+    else
+        $PKG_INSTALL libnotify-bin
+    fi
 fi
 
 # Install clangd if not installed
@@ -132,13 +219,35 @@ else
     $PKG_INSTALL build-essential
 fi
 
-stow .
+stow --no-folding .
+
+# Starship prompt: symlink our config to where starship reads it
+# (~/.config/starship.toml is a plain file, not a stow-managed dir).
+ln -sfnv "$PWD/starship/starship.toml" "$HOME/.config/starship.toml"
+
+# Install / update tmux config (oh-my-tmux + plugins)
+./scripts/tmux-install.sh
 tmux new-session -d -s rtb123
 tmux send-keys "tmux source ~/.config/tmux/tmux.conf" C-m
 tmux kill-session -t rtb123
+
+# Install 2kabhishek CLI tools (tdo, mkrepo, ghpm, git-sync, cmtr, gitrim)
+# + set up NOTES_DIR and the git-sync repo-list config.
+./scripts/install-2k-cli-tools.sh
+
+# Vimium (browser extension): can't be auto-installed - install it from the
+# Chrome/Firefox store manually, then import dots/vimium/vimium.json via its
+# options page (Import/Export Options). See dots/vimium/README.md.
+echo "Vimium: install the extension manually, then import dots/vimium/vimium.json (see dots/vimium/README.md)."
 # Source zshrc if it exists
 if [ -f "$HOME/.config/zshrc/.zshrc" ]; then
     zsh -c "source ~/.config/zshrc/.zshrc"
 else
     echo "Warning: ~/.config/zshrc/.zshrc not found, skipping..."
 fi
+
+# Kill any running tmux server so the next launch starts fresh - picks up
+# NOTES_DIR (for the tdo status segment) and any other new env/plugins.
+# NOTE: this closes all current tmux sessions.
+echo "Killing tmux server so a fresh one picks up NOTES_DIR + new plugins..."
+tmux kill-server 2>/dev/null || true
