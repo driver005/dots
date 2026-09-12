@@ -1,0 +1,34 @@
+# Rendered by tabby-install.sh into ~/.config/tabbyml/config.toml (the AUR
+# tabbyml-bin package's real config location - NOT ~/.tabby). The
+# {{MISTRAL_API_KEY}}/{{VOYAGE_API_KEY}} placeholders are substituted from
+# the environment at install time so real keys never land in git; edit this
+# template, not the rendered file, if you want to change backends.
+#
+# Fully cloud, no local models: completion via Mistral's free-tier
+# Codestral (FIM-tuned), embeddings (for repo-indexing) via Voyage AI's
+# free tier (200M tokens) - the only genuinely free embeddings option
+# found; Anthropic and Google both lack a free-tier embeddings path here
+# (Claude has no embeddings API at all; Tabby has no Gemini support).
+#
+# No [model.chat.*] section deliberately - Tabby's own chat/Answer-Engine
+# isn't used here; chat goes through agent-shell/gptel instead, which are
+# unrelated to Tabby's model registry.
+#
+# Docs: https://tabby.tabbyml.com/docs/administration/config-toml/
+
+[model.completion.http]
+kind = "mistral/completion"
+model_name = "codestral-latest"
+api_endpoint = "https://api.mistral.ai"
+api_key = "{{MISTRAL_API_KEY}}"
+
+[model.embedding.http]
+kind = "voyage/embedding"
+model_name = "voyage-code-2"
+api_key = "{{VOYAGE_API_KEY}}"
+
+# Register projects for repo-index-aware completion/chat context. Add one
+# entry per project you want Tabby to index:
+# [[repositories]]
+# name = "my-project"
+# git_url = "file:///home/default/path/to/project"

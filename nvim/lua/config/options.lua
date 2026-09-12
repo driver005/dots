@@ -2,6 +2,11 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 
+-- Silence LSP file logging
+vim.lsp.log.set_level("trace")
+
+vim.filetype.add({ extension = { cppm = "cpp" } })
+
 -- Load API keys / secrets from ~/.bashrc.secrets into the environment so
 -- plugins that read env vars (minuet/Codestral, etc.) work no matter how
 -- nvim was launched (kitty, tmux dev session, bash -c ...).

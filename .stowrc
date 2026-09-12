@@ -3,3 +3,13 @@
 --ignore=DS_Store
 --ignore=atuin/*
 --ignore=.git/*
+--ignore=tmux/scripts/.*\.sh
+--ignore=tmux/sessions/.*\.sh
+--ignore=tmux/utils/.*\.sh
+--ignore=tmux/terminal\.conf
+--ignore=tmux/tor\.conf
+--ignore=^emacs$
+--ignore=^helix$
+--ignore=^hypernation$
+--ignore=^scripts$
+

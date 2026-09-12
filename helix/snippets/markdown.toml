@@ -1,0 +1,160 @@
+# Markdown snippets for Helix, served by simple-completion-language-server
+# (scls). Type a prefix, pick it from the completion popup (Tab/Enter). Ports
+# the nvim markdown/tdo workflow. Full-word prefixes (checkbox, bold - not b).
+# $1/$2 = tab stops, ${2:default} = placeholder text.
+
+# ── Checkboxes / todos (the tdo workflow) ────────────────────────────────
+[[snippets]]
+prefix = "checkbox"
+scope = ["markdown"]
+body = "- [ ] $1"
+description = "unchecked checkbox"
+
+[[snippets]]
+prefix = "cb"
+scope = ["markdown"]
+body = "- [ ] $1"
+description = "unchecked checkbox (short)"
+
+[[snippets]]
+prefix = "todo"
+scope = ["markdown"]
+body = "- [ ] $1"
+description = "todo item"
+
+[[snippets]]
+prefix = "done"
+scope = ["markdown"]
+body = "- [x] $1"
+description = "checked checkbox"
+
+# ── Headings ─────────────────────────────────────────────────────────────
+[[snippets]]
+prefix = "heading1"
+scope = ["markdown"]
+body = "# $1"
+description = "H1"
+
+[[snippets]]
+prefix = "heading2"
+scope = ["markdown"]
+body = "## $1"
+description = "H2"
+
+[[snippets]]
+prefix = "heading3"
+scope = ["markdown"]
+body = "### $1"
+description = "H3"
+
+[[snippets]]
+prefix = "heading4"
+scope = ["markdown"]
+body = "#### $1"
+description = "H4"
+
+[[snippets]]
+prefix = "heading5"
+scope = ["markdown"]
+body = "##### $1"
+description = "H5"
+
+[[snippets]]
+prefix = "heading6"
+scope = ["markdown"]
+body = "###### $1"
+description = "H6"
+
+# ── Inline emphasis ──────────────────────────────────────────────────────
+[[snippets]]
+prefix = "bold"
+scope = ["markdown"]
+body = "**$1**"
+description = "bold"
+
+[[snippets]]
+prefix = "italic"
+scope = ["markdown"]
+body = "*$1*"
+description = "italic"
+
+[[snippets]]
+prefix = "strikethrough"
+scope = ["markdown"]
+body = "~~$1~~"
+description = "strikethrough"
+
+[[snippets]]
+prefix = "code"
+scope = ["markdown"]
+body = "`$1`"
+description = "inline code"
+
+# ── Blocks ───────────────────────────────────────────────────────────────
+[[snippets]]
+prefix = "codeblock"
+scope = ["markdown"]
+body = """
+```${1:lang}
+$2
+```"""
+description = "fenced code block"
+
+[[snippets]]
+prefix = "quote"
+scope = ["markdown"]
+body = "> $1"
+description = "blockquote"
+
+[[snippets]]
+prefix = "note"
+scope = ["markdown"]
+body = "> **Note:** $1"
+description = "note callout"
+
+[[snippets]]
+prefix = "warning"
+scope = ["markdown"]
+body = "> **Warning:** $1"
+description = "warning callout"
+
+[[snippets]]
+prefix = "horizontalrule"
+scope = ["markdown"]
+body = "---"
+description = "horizontal rule"
+
+# ── Links / media ────────────────────────────────────────────────────────
+[[snippets]]
+prefix = "link"
+scope = ["markdown"]
+body = "[$1](${2:https://})"
+description = "link"
+
+[[snippets]]
+prefix = "image"
+scope = ["markdown"]
+body = "![${1:alt}](${2:path})"
+description = "image"
+
+# ── Lists / tables ───────────────────────────────────────────────────────
+[[snippets]]
+prefix = "unordered"
+scope = ["markdown"]
+body = "- $1"
+description = "unordered list item"
+
+[[snippets]]
+prefix = "ordered"
+scope = ["markdown"]
+body = "1. $1"
+description = "ordered list item"
+
+[[snippets]]
+prefix = "table"
+scope = ["markdown"]
+body = """
+| ${1:col1} | ${2:col2} |
+| --- | --- |
+| $3 | $4 |"""
+description = "table"

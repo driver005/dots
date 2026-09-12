@@ -16,8 +16,23 @@ term_.prefs_.set('user-css-text', '@font-face {font-family: "JetBrains Mono Nerd
 1. To change font, replace url path to raw .ttf file with your font in [Nerd Fonts repository](https://github.com/ryanoasis/nerd-fonts/tree/master)
 2. To disable ligatures, delete `x-row` class in `user-css-text` parameter
 
+# please check
+
+``` bash
+echo 'export PATH="/home/default/.npm-global/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
 # Run
 
 ```bash
 ./setup.sh
 ```
+
+# Power Management & Safe Hibernation
+
+To configure safe NVIDIA hibernation, ZRAM offloading, and Btrfs sync hooks:
+```bash
+sudo ./hypernation/setup-hibernate.sh
+```
+See `hypernation/README.md` for full architectural details.

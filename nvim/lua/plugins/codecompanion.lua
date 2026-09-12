@@ -10,7 +10,7 @@ return {
       "3ZsForInsomnia/vs-code-companion",
       "ravitemer/codecompanion-history.nvim",
       "Davidyz/codecompanion-dap.nvim",
-      -- "Davidyz/VectorCode", -- commented out, replaced by octocode
+      -- "Davidyz/VectorCode", -- commented out
       "mrjones2014/codecompanion-ui.nvim",
     },
     cmd = {
@@ -97,7 +97,6 @@ return {
               { path = "~/.config/opencode/AGENTS.md" },
               -- ── Always-on skills ──────────────────────────────────
               { path = "~/.claude/skills/caveman/SKILL.md", parser = "claude" },
-              { path = "~/.claude/skills/octocode/SKILL.md", parser = "claude" },
             },
           },
           opts = {
@@ -261,30 +260,6 @@ return {
                   vim.notify("Project index added to chat", vim.log.levels.INFO)
                 end,
                 opts = { contains_code = false },
-              },
-              ["octocode"] = {
-                description = "Semantic search via octocode knowledge graph",
-                callback = function(chat)
-                  local query = vim.fn.input("Octocode search: ")
-                  if query == "" then
-                    return
-                  end
-                  local root = vim.fs.root(0, { ".git" }) or vim.fn.getcwd()
-                  vim.system({ "octocode", "search", query, "--output", "json" }, { cwd = root }, function(result)
-                    vim.schedule(function()
-                      if result.code == 0 and result.stdout ~= "" then
-                        chat:add_context(
-                          { role = "user", content = "Octocode results:\n" .. result.stdout },
-                          "octocode",
-                          "<octocode_search>"
-                        )
-                      else
-                        vim.notify("Octocode search failed: " .. (result.stderr or ""), vim.log.levels.WARN)
-                      end
-                    end)
-                  end)
-                end,
-                opts = { contains_code = true },
               },
               -- /codebase VectorCode slash command commented out
               -- ["codebase"] = (function() ... end)(),
@@ -523,7 +498,7 @@ You are an expert programmer and software engineer working inside Neovim.
               },
             },
           },
-          -- vectorcode extension commented out — replaced by octocode
+          -- vectorcode extension commented out
           -- vectorcode = {
           --   opts = {
           --     tool_group = { enabled = true, collapse = false },

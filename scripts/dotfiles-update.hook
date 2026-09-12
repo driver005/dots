@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Updating LazyVim, Helix grammars, tmux plugins, Doom Emacs, Spacemacs and Chemacs2...
+When = PostTransaction
+Exec = /usr/bin/runuser -u default -- /home/default/dots/scripts/dotfiles-update.sh

@@ -1,0 +1,21 @@
+# dev session — 5 tabs: nvim | claude | shell | opencode | tdo
+# Opened via the session menu (ctrl+space>S -> scripts/session_menu.py).
+
+# tab 1: nvim (implicit first tab)
+launch --title nvim --hold nvim
+
+# tab 2: claude
+new_tab claude
+launch --hold claude
+
+# tab 3: empty shell
+new_tab shell
+launch
+
+# tab 4: opencode
+new_tab opencode
+launch --hold opencode
+
+# tab 5: todos
+new_tab todo
+launch --hold tdo

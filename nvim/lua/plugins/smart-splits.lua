@@ -2,6 +2,9 @@ return {
   "mrjones2014/smart-splits.nvim",
   build = "./kitty/install-kittens.bash",
   keys = {
+    -- A-hjkl: nvim <-> tmux pane nav (replaces vim-tmux-navigator, which
+    -- caused a cursor-jump-on-scroll redraw glitch inside tmux). smart-splits
+    -- falls through to tmux at the nvim edge natively.
     {
       "<A-h>",
       function()

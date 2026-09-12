@@ -1,0 +1,104 @@
+version = 1
+
+# [llm] deliberately omitted: unused by anything actually wired up here
+# (the MCP tools - semantic_search, structural_search, graphrag - are all
+# embeddings/AST-based, no LLM involved; that's confirmed straight from
+# octocode's own docs). It's `#[serde(default)]` in octocode's Config
+# struct, so omitting it is safe - falls back to built-in defaults only if
+# an LLM-dependent command (explain/diff/commit/review) is ever actually
+# run, which nothing here currently does.
+
+[index]
+chunk_size = 2000
+chunk_overlap = 100
+embeddings_batch_size = 16
+embeddings_max_tokens_per_batch = 100000
+flush_frequency = 2
+require_git = true
+quantization = true
+contextual_descriptions = false
+contextual_model = "openrouter:openai/gpt-4o-mini"
+contextual_batch_size = 10
+
+[search]
+max_results = 20
+similarity_threshold = 0.65
+output_format = "markdown"
+max_files = 500
+context_lines = 3
+search_block_max_characters = 400
+
+[search.reranker]
+enabled = true
+model = "fastembed:jina-reranker-v2-base-multilingual"
+top_k_candidates = 50
+final_top_k = 10
+
+[search.hybrid]
+enabled = true
+default_vector_weight = 0.7
+default_keyword_weight = 0.3
+keyword_path_weight = 2.0
+keyword_content_weight = 1.0
+keyword_symbols_weight = 2.5
+keyword_title_weight = 3.0
+
+[embedding]
+code_model = "fastembed:jinaai/jina-embeddings-v2-base-code"
+text_model = "fastembed:Xenova/all-MiniLM-L6-v2"
+
+[graphrag]
+enabled = false
+use_llm = false
+
+# [graphrag.llm] is required whenever [graphrag] is present at all - its
+# `llm` field has no #[serde(default)] of its own, unlike `enabled'/
+# `use_llm' above (confirmed the hard way: omitting it broke config
+# parsing entirely - "missing field `llm`"). Harmless to keep though,
+# never actually read while use_llm = false.
+[graphrag.llm]
+description_model = "openrouter:openai/gpt-4o-mini"
+relationship_model = "openrouter:openai/gpt-4o-mini"
+ai_batch_size = 8
+max_batch_tokens = 16384
+batch_timeout_seconds = 60
+fallback_to_individual = true
+max_sample_tokens = 1500
+confidence_threshold = 0.6
+architectural_weight = 0.9
+relationship_system_prompt = """
+You are an expert software architect specializing in code analysis. Analyze the provided code files and identify meaningful ARCHITECTURAL relationships that go beyond simple imports.
+
+Focus on these relationship types:
+- 'imports': Module/package imports and dependencies
+- 'implements': Interface implementation, trait implementation
+- 'extends': Class inheritance, module extension
+- 'calls': Function/method calls between modules
+- 'uses': Utility usage, service consumption
+- 'configures': Configuration setup, dependency injection
+- 'factory_creates': Factory pattern instantiation
+- 'observer_pattern': Event listening, callback registration
+- 'strategy_pattern': Algorithm selection, behavior delegation
+- 'adapter_pattern': Interface adaptation, wrapper usage
+- 'architectural_dependency': High-level system dependencies
+
+Respond with a JSON array of relationships. Each relationship must include:
+- source_path: relative path of source file
+- target_path: relative path of target file
+- relation_type: one of the types listed above
+- description: specific explanation of HOW the relationship works
+- confidence: 0.0-1.0 confidence score (use 0.8+ for clear relationships)
+
+Only include relationships with clear architectural significance. Avoid trivial imports."""
+description_system_prompt = """
+You are a senior software engineer analyzing code architecture. Provide a concise 2-3 sentence description of the file's ROLE and PURPOSE in the system.
+
+Focus on:
+- What architectural layer this file belongs to (API, business logic, data access, utilities, etc.)
+- Its primary responsibility and how it contributes to the system
+- Key patterns or architectural decisions it implements
+
+Avoid listing specific functions/classes. Instead, describe the file's architectural significance and how it fits into the larger system design."""
+
+[commits]
+use_llm = false

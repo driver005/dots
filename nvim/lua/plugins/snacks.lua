@@ -3,6 +3,7 @@ return {
     "folke/snacks.nvim",
     ---@type snacks.Config
     opts = {
+      scroll = { enabled = false },
       picker = {
         sources = {
           -- This handles the file picker (e.g., <leader><space>)

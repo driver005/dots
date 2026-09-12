@@ -14,6 +14,30 @@ command_exists() {
     command -v "$1" &>/dev/null
 }
 
+ask_yes_no() {
+    local prompt="$1"
+    local reply
+    read -r -p "$prompt [Y/n] " reply
+    [[ -z "$reply" || "$reply" =~ ^[Yy]$ ]]
+}
+
+INSTALL_TMUX=false
+ask_yes_no "Install tmux (multiplexer + full plugin ecosystem)?" && INSTALL_TMUX=true
+INSTALL_HELIX=false
+ask_yes_no "Install Helix editor?" && INSTALL_HELIX=true
+INSTALL_EMACS=false
+ask_yes_no "Install Emacs (Chemacs2 + Doom Emacs + Spacemacs)?" && INSTALL_EMACS=true
+INSTALL_TABBY=false
+ask_yes_no "Install Tabby (self-hosted AI completion + repo index, Doom-only)?" && INSTALL_TABBY=true
+INSTALL_OCTOCODE=false
+ask_yes_no "Install octocode (codebase graph MCP server, Doom-only)?" && INSTALL_OCTOCODE=true
+INSTALL_2K_TOOLS=false
+ask_yes_no "Install 2kabhishek CLI tools (tdo, mkrepo, ghpm, git-sync, cmtr, gitrim)?" && INSTALL_2K_TOOLS=true
+INSTALL_UPDATE_HOOK=false
+ask_yes_no "Install the pacman hook that auto-updates these tools on every garuda-update?" && INSTALL_UPDATE_HOOK=true
+INSTALL_HIBERNATE=false
+ask_yes_no "Configure NVIDIA power management & safe hibernation?" && INSTALL_HIBERNATE=true
+
 # Detect package manager and set install command
 if command_exists pacman; then
     echo "Detected pacman package manager."
@@ -73,16 +97,18 @@ if ! command_exists zoxide; then
     fi
 fi
 
-# Install tmux if not installed
-if ! command_exists tmux; then
-    echo "Tmux not found. Installing tmux..."
-    $PKG_INSTALL tmux
-fi
+if [ "$INSTALL_TMUX" = true ]; then
+    # Install tmux if not installed
+    if ! command_exists tmux; then
+        echo "Tmux not found. Installing tmux..."
+        $PKG_INSTALL tmux
+    fi
 
-# Install clipboard tool for tmux-yank
-if ! command_exists wl-copy && ! command_exists xsel && ! command_exists xclip; then
-    echo "Installing wl-clipboard for tmux-yank..."
-    $PKG_INSTALL wl-clipboard
+    # Install clipboard tool for tmux-yank
+    if ! command_exists wl-copy && ! command_exists xsel && ! command_exists xclip; then
+        echo "Installing wl-clipboard for tmux-yank..."
+        $PKG_INSTALL wl-clipboard
+    fi
 fi
 
 # Install stow if not installed
@@ -97,88 +123,90 @@ if ! command_exists rg; then
     $PKG_INSTALL ripgrep
 fi
 
-# Install sysstat for tmux-cpu accurate readings
-if ! command_exists iostat; then
-    echo "sysstat not found. Installing sysstat..."
-    $PKG_INSTALL sysstat
-fi
-
-# Install tmux plugin dependencies
-if ! command_exists ruby; then
-    echo "ruby not found. Installing ruby (required by tmux-jump)..."
-    $PKG_INSTALL ruby
-fi
-
-# proxychains-ng + tor: for the tor.conf tmux variant (proxychains-wrapped
-# shells route traffic through Tor).
-if ! command_exists proxychains && ! command_exists proxychains4; then
-    echo "proxychains not found. Installing (required by tor.conf variant)..."
-    if command_exists pacman; then
-        $PKG_INSTALL proxychains-ng
-    else
-        $PKG_INSTALL proxychains4
+if [ "$INSTALL_TMUX" = true ]; then
+    # Install sysstat for tmux-cpu accurate readings
+    if ! command_exists iostat; then
+        echo "sysstat not found. Installing sysstat..."
+        $PKG_INSTALL sysstat
     fi
-fi
-if ! command_exists tor; then
-    echo "tor not found. Installing (required by tor.conf variant)..."
-    $PKG_INSTALL tor
-fi
 
-# libtmux: Python dep for tmux-window-name (smart window naming). Without
-# it the plugin silently no-ops and windows fall back to "bash".
-if ! python3 -c "import libtmux" 2>/dev/null; then
-    echo "libtmux not found. Installing (required by tmux-window-name)..."
-    if command_exists pacman; then
-        $PKG_INSTALL python-libtmux
-    else
-        python3 -m pip install --user libtmux 2>/dev/null || \
-            python3 -m pip install --user --break-system-packages libtmux
+    # Install tmux plugin dependencies
+    if ! command_exists ruby; then
+        echo "ruby not found. Installing ruby (required by tmux-jump)..."
+        $PKG_INSTALL ruby
     fi
-fi
 
-if ! command_exists cargo; then
-    echo "cargo not found. Installing cargo (required by tmux-thumbs)..."
-    if command_exists pacman; then
-        $PKG_INSTALL rust
-    else
-        $PKG_INSTALL cargo
+    # proxychains-ng + tor: for the tor.conf tmux variant (proxychains-wrapped
+    # shells route traffic through Tor).
+    if ! command_exists proxychains && ! command_exists proxychains4; then
+        echo "proxychains not found. Installing (required by tor.conf variant)..."
+        if command_exists pacman; then
+            $PKG_INSTALL proxychains-ng
+        else
+            $PKG_INSTALL proxychains4
+        fi
     fi
-fi
-
-if ! command_exists fpp; then
-    echo "fpp not found. Installing pathpicker (required by tmux-fpp)..."
-    if command_exists pacman; then
-        python3 -m pip install --user pathpicker 2>/dev/null || echo "Skipping pathpicker on pacman (install from AUR if needed)."
-    else
-        $PKG_INSTALL pathpicker || python3 -m pip install --user pathpicker
+    if ! command_exists tor; then
+        echo "tor not found. Installing (required by tor.conf variant)..."
+        $PKG_INSTALL tor
     fi
-fi
 
-if ! command_exists urlview; then
-    echo "urlview not found. Installing urlview (required by tmux-urlview)..."
-    $PKG_INSTALL urlview 2>/dev/null || echo "Skipping urlview (install manually if needed)."
-fi
-
-if ! command_exists playerctl; then
-    echo "playerctl not found. Installing playerctl (required by tmux-now-playing)..."
-    $PKG_INSTALL playerctl 2>/dev/null || echo "Skipping playerctl (now-playing will be disabled)."
-fi
-
-if ! command_exists fdfind && ! command_exists fd; then
-    echo "fd not found. Installing fd (required by tmux-fzf-open-files-nvim)..."
-    if command_exists pacman; then
-        $PKG_INSTALL fd
-    else
-        $PKG_INSTALL fd-find
+    # libtmux: Python dep for tmux-window-name (smart window naming). Without
+    # it the plugin silently no-ops and windows fall back to "bash".
+    if ! python3 -c "import libtmux" 2>/dev/null; then
+        echo "libtmux not found. Installing (required by tmux-window-name)..."
+        if command_exists pacman; then
+            $PKG_INSTALL python-libtmux
+        else
+            python3 -m pip install --user libtmux 2>/dev/null || \
+                python3 -m pip install --user --break-system-packages libtmux
+        fi
     fi
-fi
 
-if ! command_exists notify-send; then
-    echo "notify-send not found. Installing libnotify (required by tmux-notify)..."
-    if command_exists pacman; then
-        $PKG_INSTALL libnotify
-    else
-        $PKG_INSTALL libnotify-bin
+    if ! command_exists cargo; then
+        echo "cargo not found. Installing cargo (required by tmux-thumbs)..."
+        if command_exists pacman; then
+            $PKG_INSTALL rust
+        else
+            $PKG_INSTALL cargo
+        fi
+    fi
+
+    if ! command_exists fpp; then
+        echo "fpp not found. Installing pathpicker (required by tmux-fpp)..."
+        if command_exists pacman; then
+            python3 -m pip install --user pathpicker 2>/dev/null || echo "Skipping pathpicker on pacman (install from AUR if needed)."
+        else
+            $PKG_INSTALL pathpicker || python3 -m pip install --user pathpicker
+        fi
+    fi
+
+    if ! command_exists urlview; then
+        echo "urlview not found. Installing urlview (required by tmux-urlview)..."
+        $PKG_INSTALL urlview 2>/dev/null || echo "Skipping urlview (install manually if needed)."
+    fi
+
+    if ! command_exists playerctl; then
+        echo "playerctl not found. Installing playerctl (required by tmux-now-playing)..."
+        $PKG_INSTALL playerctl 2>/dev/null || echo "Skipping playerctl (now-playing will be disabled)."
+    fi
+
+    if ! command_exists fdfind && ! command_exists fd; then
+        echo "fd not found. Installing fd (required by tmux-fzf-open-files-nvim)..."
+        if command_exists pacman; then
+            $PKG_INSTALL fd
+        else
+            $PKG_INSTALL fd-find
+        fi
+    fi
+
+    if ! command_exists notify-send; then
+        echo "notify-send not found. Installing libnotify (required by tmux-notify)..."
+        if command_exists pacman; then
+            $PKG_INSTALL libnotify
+        else
+            $PKG_INSTALL libnotify-bin
+        fi
     fi
 fi
 
@@ -225,15 +253,56 @@ stow --no-folding .
 # (~/.config/starship.toml is a plain file, not a stow-managed dir).
 ln -sfnv "$PWD/starship/starship.toml" "$HOME/.config/starship.toml"
 
-# Install / update tmux config (oh-my-tmux + plugins)
-./scripts/tmux-install.sh
-tmux new-session -d -s rtb123
-tmux send-keys "tmux source ~/.config/tmux/tmux.conf" C-m
-tmux kill-session -t rtb123
+if [ "$INSTALL_TMUX" = true ]; then
+    # Install / update tmux config (oh-my-tmux + plugins)
+    ./scripts/tmux-install.sh
+    tmux new-session -d -s rtb123
+    tmux send-keys "tmux source ~/.config/tmux/tmux.conf" C-m
+    tmux kill-session -t rtb123
+fi
 
-# Install 2kabhishek CLI tools (tdo, mkrepo, ghpm, git-sync, cmtr, gitrim)
-# + set up NOTES_DIR and the git-sync repo-list config.
-./scripts/install-2k-cli-tools.sh
+if [ "$INSTALL_2K_TOOLS" = true ]; then
+    # Install 2kabhishek CLI tools (tdo, mkrepo, ghpm, git-sync, cmtr, gitrim)
+    # + set up NOTES_DIR and the git-sync repo-list config.
+    ./scripts/install-2k-cli-tools.sh
+fi
+
+if [ "$INSTALL_HELIX" = true ]; then
+    # Install Helix + all language servers/formatters, symlink ~/.config/helix,
+    # fetch treesitter grammars. (Config lives in dots/helix, symlinked like nvim.)
+    ln -sfnv "$PWD/helix" "$HOME/.config/helix"
+    ./scripts/helix-install.sh
+fi
+
+if [ "$INSTALL_EMACS" = true ]; then
+    # Install Emacs + Chemacs2, registering Doom Emacs and Spacemacs as
+    # switchable profiles (see emacs/emacs-install.sh for details).
+    ./emacs/emacs-install.sh
+fi
+
+if [ "$INSTALL_TABBY" = true ]; then
+    # Install Tabby (self-hosted AI completion + repo index) as a systemd --user
+    # service (see tabby/tabby-install.sh for details).
+    ./tabby/tabby-install.sh
+fi
+
+if [ "$INSTALL_OCTOCODE" = true ]; then
+    # Install octocode (codebase graph + semantic search MCP server, used via
+    # SPC o g in Doom) and symlink its config (see octocode/octocode-install.sh).
+    ./octocode/octocode-install.sh
+fi
+
+
+if [ "$INSTALL_UPDATE_HOOK" = true ]; then
+    # Pacman hook: auto-update LazyVim/Helix/tmux/Doom/Spacemacs plugins after
+    # every garuda-update (or manual pacman -Syu) via scripts/dotfiles-update.sh.
+    sudo install -Dm644 "$PWD/scripts/dotfiles-update.hook" /etc/pacman.d/hooks/50-dotfiles-update.hook
+fi
+
+if [ "$INSTALL_HIBERNATE" = true ]; then
+    # Configure NVIDIA power management, ZRAM swap offloading, and Btrfs sync hooks
+    sudo ./hypernation/setup-hibernate.sh
+fi
 
 # Vimium (browser extension): can't be auto-installed - install it from the
 # Chrome/Firefox store manually, then import dots/vimium/vimium.json via its
@@ -246,8 +315,12 @@ else
     echo "Warning: ~/.config/zshrc/.zshrc not found, skipping..."
 fi
 
-# Kill any running tmux server so the next launch starts fresh - picks up
-# NOTES_DIR (for the tdo status segment) and any other new env/plugins.
-# NOTE: this closes all current tmux sessions.
-echo "Killing tmux server so a fresh one picks up NOTES_DIR + new plugins..."
-tmux kill-server 2>/dev/null || true
+if [ "$INSTALL_TMUX" = true ]; then
+    # Kill any running tmux server so the next launch starts fresh - picks up
+    # NOTES_DIR (for the tdo status segment) and any other new env/plugins.
+    # NOTE: this closes all current tmux sessions.
+    echo "Killing tmux server so a fresh one picks up NOTES_DIR + new plugins..."
+    tmux kill-server 2>/dev/null || true
+fi
+
+source ~/.bashrc

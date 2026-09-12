@@ -1,0 +1,200 @@
+# languages.toml - per-language servers + format-on-save.
+#
+# Helix already ships built-in definitions for every language server used
+# below (clangd, rust-analyzer, gopls, typescript-language-server, gopls,
+# vscode-*-language-server, yaml-language-server, taplo, marksman, zls,
+# jdtls, sqls, dart, cmake-language-server, docker-langserver, svelteserver,
+# vue-language-server, tailwindcss-language-server). So we only override what
+# differs from the defaults: clangd flags, .cppm handling, clippy-on-save,
+# and per-language `auto-format` / prettier formatters. Anything not listed
+# still works from Helix's own defaults once the server binary is installed.
+
+# ── AI completion: LSP-AI + Mistral Codestral FIM ────────────────────────
+# lsp-ai (github.com/SilasMarvin/lsp-ai) is an editor-agnostic AI-completion
+# language server. It runs the Codestral fill-in-the-middle model, reusing the
+# CODESTRAL_API_KEY already in ~/.bashrc.secrets (same key/endpoint minuet used
+# in nvim). Its suggestions show up in Helix's normal completion popup.
+# Attach it to a language by adding "lsp-ai" to that [[language]]'s
+# language-servers list (alongside the real LSP) - see cpp/c/rust/go/zig below.
+[language-server.lsp-ai]
+command = "lsp-ai"
+
+[language-server.lsp-ai.config.memory]
+file_store = {}
+
+[language-server.lsp-ai.config.models.codestral]
+type = "mistral_fim"
+fim_endpoint = "https://codestral.mistral.ai/v1/fim/completions"
+model = "codestral-latest"
+auth_token_env_var_name = "CODESTRAL_API_KEY"
+
+[language-server.lsp-ai.config.completion]
+model = "codestral"
+
+[language-server.lsp-ai.config.completion.parameters]
+max_context = 2048
+max_tokens = 128
+
+# ── OPT-IN: llmvm-codeassist (AI code-actions with LSP context, Claude) ──
+# Unlike lsp-ai (inline FIM completion), llmvm-codeassist WRAPS the real LSP:
+# it launches the given server, forwards all its features, and adds AI
+# completion to the code-actions menu (select code -> code action). Because it
+# replaces the LSP in the language-servers list, do NOT combine it with a bare
+# clangd/rust-analyzer entry for the same language - point it at that server
+# instead. Requires: `cargo install llmvm-codeassist llmvm-core llmvm-outsource`
+# (done by helix-install.sh) AND a configured backend + API key at
+# ~/.config/llmvm/codeassist.toml (run `llmvm-codeassist` once to generate it;
+# set the outsource Anthropic provider + ANTHROPIC_API_KEY). To enable for C++,
+# uncomment below and change cpp's language-servers to
+# ["llmvm-codeassist-cpp", "lsp-ai"]:
+#
+# [language-server.llmvm-codeassist-cpp]
+# command = "llmvm-codeassist"
+# args = ["clangd", "--header-insertion=iwyu", "--clang-tidy"]
+#
+# [language-server.llmvm-codeassist-rust]
+# command = "llmvm-codeassist"
+# args = ["rust-analyzer"]
+
+# ── C / C++ ──────────────────────────────────────────────────────────────
+[language-server.clangd]
+command = "clangd"
+args = ["--header-insertion=iwyu", "--clang-tidy", "--background-index", "--completion-style=detailed"]
+
+[language-server.clangd.config.clangd]
+InlayHints = { Enabled = true }
+
+[[language]]
+name = "cpp"
+language-servers = ["clangd", "lsp-ai"]
+auto-format = true
+# C++20 modules: Helix maps these to cpp so clangd/treesitter kick in.
+file-types = ["cpp", "cc", "cxx", "c++", "hpp", "hh", "hxx", "h++", "cppm", "ixx"]
+
+[[language]]
+name = "c"
+language-servers = ["clangd", "lsp-ai"]
+auto-format = true
+
+# ── Rust ─────────────────────────────────────────────────────────────────
+[language-server.rust-analyzer.config.check]
+command = "clippy"
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer", "lsp-ai"]
+auto-format = true
+
+# ── Go ───────────────────────────────────────────────────────────────────
+[[language]]
+name = "go"
+language-servers = ["gopls", "lsp-ai"]
+auto-format = true
+
+# ── Zig ──────────────────────────────────────────────────────────────────
+[[language]]
+name = "zig"
+language-servers = ["zls", "lsp-ai"]
+auto-format = true
+
+# ── TOML / YAML / JSON ──────────────────────────────────────────────────
+[[language]]
+name = "toml"
+auto-format = true
+
+[[language]]
+name = "yaml"
+formatter = { command = "prettier", args = ["--parser", "yaml"] }
+auto-format = true
+
+[[language]]
+name = "json"
+formatter = { command = "prettier", args = ["--parser", "json"] }
+auto-format = true
+
+# ── Snippets + word completion (simple-completion-language-server) ───────
+# Serves the user snippets in ~/.config/helix/snippets/*.toml (the filename =
+# scope, e.g. markdown.toml) plus buffer-word and path completion. Helix has
+# no native snippet engine, so this is how the nvim markdown/tdo snippets port.
+[language-server.scls]
+command = "simple-completion-language-server"
+
+[language-server.scls.config]
+feature_words = true
+feature_snippets = true
+snippets_first = true
+case_sensitive = false
+feature_paths = true
+
+[language-server.scls.environment]
+RUST_LOG = "info,simple-completion-language-server=info"
+
+# ── Markdown ─────────────────────────────────────────────────────────────
+[[language]]
+name = "markdown"
+language-servers = ["marksman", "scls"]
+formatter = { command = "prettier", args = ["--parser", "markdown"] }
+auto-format = true
+
+# ── Web stack: prettier as the formatter, LSP for everything else ────────
+[[language]]
+name = "typescript"
+formatter = { command = "prettier", args = ["--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "tsx"
+formatter = { command = "prettier", args = ["--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "javascript"
+formatter = { command = "prettier", args = ["--parser", "babel"] }
+auto-format = true
+
+[[language]]
+name = "jsx"
+formatter = { command = "prettier", args = ["--parser", "babel"] }
+auto-format = true
+
+[[language]]
+name = "css"
+formatter = { command = "prettier", args = ["--parser", "css"] }
+auto-format = true
+
+[[language]]
+name = "html"
+language-servers = ["vscode-html-language-server", "tailwindcss-ls"]
+formatter = { command = "prettier", args = ["--parser", "html"] }
+auto-format = true
+
+[[language]]
+name = "svelte"
+language-servers = ["svelteserver", "tailwindcss-ls"]
+auto-format = true
+
+[[language]]
+name = "vue"
+language-servers = ["vue-language-server", "tailwindcss-ls"]
+auto-format = true
+
+# ── SQL / Docker / CMake / Dart / Java ───────────────────────────────────
+[[language]]
+name = "sql"
+auto-format = true
+
+[[language]]
+name = "dockerfile"
+auto-format = true
+
+[[language]]
+name = "cmake"
+auto-format = true
+
+[[language]]
+name = "dart"
+auto-format = true
+
+[[language]]
+name = "java"
+auto-format = true

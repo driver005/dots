@@ -13,6 +13,7 @@ return {
             "--clang-tidy",
             "--header-insertion=iwyu",
           },
+          filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
         },
         served = {
           -- Works perfectly out of the box with default settings!

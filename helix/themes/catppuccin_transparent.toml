@@ -1,0 +1,12 @@
+# Catppuccin Mocha with a transparent background, so Helix shows the kitty
+# terminal background through - matching the nvim catppuccin config
+# (transparent_background = true) and the tmux bar (bg=default). Inherits
+# every colour from the built-in catppuccin_mocha theme and only drops the
+# opaque backgrounds on the surfaces that would otherwise paint over kitty.
+inherits = "catppuccin_mocha"
+
+# Unsetting bg (only fg given) = transparent surface.
+"ui.background" = { fg = "text" }
+"ui.statusline" = { fg = "subtext1" }
+"ui.statusline.inactive" = { fg = "overlay0" }
+"ui.virtual.ruler" = { bg = "surface0" }

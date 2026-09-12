@@ -1,0 +1,223 @@
+# Helix config - ports the LazyVim/nvim "experience" as far as Helix's
+# selection-first model allows. See HELIX.md for the full cheatsheet and the
+# list of nvim features that have no Helix equivalent.
+
+theme = "catppuccin_transparent"
+
+[editor]
+line-number = "relative"        # matches nvim relativenumber
+cursorline = true
+scrolloff = 8
+true-color = true               # force truecolor (kitty/tmux support it)
+color-modes = true              # tint the mode indicator
+bufferline = "multiple"         # show open buffers as a tab-like bar
+rulers = [100]                  # matches the clang-format / 100-col style
+text-width = 100
+completion-trigger-len = 1
+end-of-line-diagnostics = "hint"   # inline diagnostic at end of line
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = true                   # show dotfiles in the picker (like snacks hidden=true)
+git-ignore = false              # also surface git-ignored files
+
+[editor.lsp]
+display-inlay-hints = true
+display-messages = true
+
+[editor.indent-guides]
+render = true
+character = "▏"
+
+[editor.soft-wrap]
+enable = true                   # wrap long lines (prose/markdown feel)
+
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "file-modification-indicator", "read-only-indicator"]
+center = []
+right = ["diagnostics", "selections", "position", "file-encoding", "file-line-ending", "file-type"]
+separator = "│"
+
+[editor.statusline.mode]
+normal = "NORMAL"
+insert = "INSERT"
+select = "SELECT"
+
+# ─────────────────────────────────────────────────────────────────────────
+# Keys: Helix stays selection-first, but a thin vim-familiar layer is added.
+# NOTE: making d/y/c prefixes means bare `d` no longer deletes the current
+# selection on its own - it waits for a second key (vim operator style). The
+# Helix-native way (select first, then a bare command) still works via v/x
+# motions; these just add the muscle-memory `dd`/`yy`/`cc` line ops.
+# ─────────────────────────────────────────────────────────────────────────
+[keys.normal]
+C-s = ":write"
+G = "goto_last_line"            # vim G (Helix native is ge)
+U = "redo"                      # vim-style redo (Helix native is A-u)
+"$" = "goto_line_end"
+"0" = "goto_line_start"
+"^" = "goto_first_nonwhitespace"   # vim ^ (Helix native is gs)
+"%" = "match_brackets"             # vim % jump to matching bracket (Helix mm)
+"{" = ["goto_prev_paragraph", "collapse_selection"]   # vim { paragraph up
+"}" = ["goto_next_paragraph", "collapse_selection"]   # vim } paragraph down
+D = ["extend_to_line_end", "delete_selection"]         # vim D delete to eol
+Y = ["extend_to_line_end", "yank", "collapse_selection"]  # vim Y yank to eol
+V = ["select_mode", "extend_to_line_bounds"]           # vim V visual-line
+S = "surround_add"                                     # vim-surround add (Helix ms)
+# vim * / # : search word under cursor forward / backward
+"*" = ["move_char_right", "move_prev_word_start", "move_next_word_end", "search_selection", "search_next"]
+"#" = ["move_char_right", "move_prev_word_start", "move_next_word_end", "search_selection", "search_prev"]
+# NOTE: bare C left as Helix default (copy_selection_on_next_line, multicursor).
+# Use cc / c$ for vim change-line / change-to-eol. Bare x = Helix line-extend.
+# vim/LazyVim buffer nav (S-h / S-l)
+H = "goto_previous_buffer"
+L = "goto_next_buffer"
+# smart-splits-style window nav (C-h/j/k/l) — inside Helix only; tmux prefix
+# still needed to cross into tmux panes (Helix has no seamless-nav API).
+C-h = "jump_view_left"
+C-j = "jump_view_down"
+C-k = "jump_view_up"
+C-l = "jump_view_right"
+# NOTE: diagnostic nav [d/]d, function nav [f/]f, and comment toggle (C-c) are
+# already Helix defaults — no remap needed.
+
+# dd / dw / d$ ... (vim operator-pending style delete)
+[keys.normal.d]
+d = ["extend_to_line_bounds", "delete_selection"]
+w = ["move_next_word_start", "delete_selection"]
+e = ["move_next_word_end", "delete_selection"]
+b = ["move_prev_word_start", "delete_selection"]
+j = ["extend_to_line_bounds", "extend_line_below", "delete_selection"]  # dj line+below
+k = ["extend_to_line_bounds", "extend_line_above", "delete_selection"]  # dk line+above
+"$" = ["extend_to_line_end", "delete_selection"]
+"0" = ["extend_to_line_start", "delete_selection"]
+g = ["extend_to_line_bounds", "goto_file_start", "delete_selection"]       # dgg to file start
+G = ["extend_to_last_line", "delete_selection"]
+
+# yy / yw ... (yank)
+[keys.normal.y]
+y = ["extend_to_line_bounds", "yank", "collapse_selection"]
+w = ["move_next_word_start", "yank", "collapse_selection"]
+e = ["move_next_word_end", "yank", "collapse_selection"]
+b = ["move_prev_word_start", "yank", "collapse_selection"]
+j = ["extend_to_line_bounds", "extend_line_below", "yank", "collapse_selection"]  # yj
+k = ["extend_to_line_bounds", "extend_line_above", "yank", "collapse_selection"]  # yk
+"$" = ["extend_to_line_end", "yank", "collapse_selection"]
+"0" = ["extend_to_line_start", "yank", "collapse_selection"]
+g = ["extend_to_line_bounds", "goto_file_start", "yank", "collapse_selection"]       # ygg
+G = ["extend_to_last_line", "yank", "collapse_selection"]
+
+# cc / cw ... (change = delete + insert)
+[keys.normal.c]
+c = ["extend_to_line_bounds", "change_selection"]
+w = ["move_next_word_start", "change_selection"]
+e = ["move_next_word_end", "change_selection"]
+b = ["move_prev_word_start", "change_selection"]
+"$" = ["extend_to_line_end", "change_selection"]
+"0" = ["extend_to_line_start", "change_selection"]
+
+# ── Leader menu on space, mirroring the LazyVim <leader> groups ──────────
+# Helix pops a hint menu after each prefix (which-key-like), so pressing
+# `space` then `f`/`b`/`c`/... shows the group's members. The nesting mirrors
+# LazyVim's <leader> groups; the vim MOTIONS live on the d/y/c operator menus
+# above (operator-first: dd/dw/cw/yy), NOT here.
+
+# Top-level singles (LazyVim's quick-access leaders that aren't groups)
+[keys.normal.space]
+space = "file_picker"                  # <leader><space>  find files
+"," = "buffer_picker"                  # <leader>,        buffers
+"/" = "global_search"                  # <leader>/        grep
+":" = "command_palette"                # <leader>:        command palette
+e = "file_explorer"                    # <leader>e        explorer
+k = "hover"                            # <leader>k        hover docs
+d = "diagnostics_picker"               # buffer diagnostics (quick)
+# Claude Code CLI in a tmux split - the "Claude Code integration".
+# Uses the existing Claude Code login, so no API key is needed.
+a = ":sh tmux split-window -h claude"
+# toggle a markdown checkbox [ ] <-> [x] on the current line (tdo workflow):
+# select the line, pipe it through the toggle script, replace in place.
+t = ["extend_to_line_bounds", ":pipe bash ~/.config/helix/scripts/toggle-checkbox.sh"]
+
+# <leader>f  find / file
+[keys.normal.space.f]
+f = "file_picker"                      # ff  files (root)
+d = "file_picker_in_current_buffer_directory"  # fd  files near buffer
+r = "last_picker"                      # fr  resume/recent picker
+b = "buffer_picker"                    # fb  buffers
+e = "file_explorer"                    # fe  explorer
+n = ":new"                             # fn  new file
+c = ":open ~/.config/helix/config.toml"  # fc  edit config
+s = ":write"                           # fs  save
+
+# <leader>b  buffer
+[keys.normal.space.b]
+b = "buffer_picker"                    # bb  switch buffer
+d = ":buffer-close"                    # bd  delete buffer
+o = ":buffer-close-others"             # bo  delete other buffers
+n = "goto_next_buffer"                 # bn  next
+p = "goto_previous_buffer"             # bp  prev
+
+# <leader>c  code
+[keys.normal.space.c]
+a = "code_action"                      # ca  code action
+r = "rename_symbol"                    # cr  rename
+f = ":format"                          # cf  format
+d = "diagnostics_picker"               # cd  line/buffer diagnostics
+s = "symbol_picker"                    # cs  document symbols
+h = "hover"                            # ch  hover
+
+# <leader>s  search
+[keys.normal.space.s]
+g = "global_search"                    # sg  grep
+s = "symbol_picker"                    # ss  document symbols
+S = "workspace_symbol_picker"          # sS  workspace symbols
+d = "diagnostics_picker"               # sd  document diagnostics
+D = "workspace_diagnostics_picker"     # sD  workspace diagnostics
+b = "search"                           # sb  search in buffer
+j = "jumplist_picker"                  # sj  jumplist
+r = "last_picker"                      # sr  resume last picker
+k = "command_palette"                  # sk  commands (keymaps-ish)
+
+# <leader>g  git  (no native UI - tmux lazygit + native change picker)
+[keys.normal.space.g]
+g = ":sh tmux split-window -h lazygit" # gg  lazygit
+f = "changed_file_picker"              # gf  changed files
+b = ":sh tmux split-window -h 'git blame %{buffer_name} | less'"  # gb  blame current file
+
+# <leader>u  ui toggles
+[keys.normal.space.u]
+w = ":toggle soft-wrap.enable"                 # uw  wrap
+n = ":toggle line-number relative absolute"    # un  line-number style
+i = ":toggle lsp.display-inlay-hints"          # ui  inlay hints
+c = ":toggle cursorline"                       # uc  cursorline
+
+# <leader>w  window
+[keys.normal.space.w]
+v = "vsplit"                           # wv  vsplit
+s = "hsplit"                           # ws  hsplit
+d = "wclose"                           # wd  close window
+o = "wonly"                            # wo  close others
+w = "rotate_view"                      # ww  cycle window
+h = "jump_view_left"
+j = "jump_view_down"
+k = "jump_view_up"
+l = "jump_view_right"
+
+# <leader>x  diagnostics / quickfix
+[keys.normal.space.x]
+x = "diagnostics_picker"               # xx  document diagnostics
+X = "workspace_diagnostics_picker"     # xX  workspace diagnostics
+
+# <leader>q  quit
+[keys.normal.space.q]
+q = ":quit"                            # qq  quit
+Q = ":quit-all"                        # qQ  quit all
+w = ":write-quit"                      # qw  save + quit
+
+[keys.insert]
+# quick escape, vim-style
+j = { k = "normal_mode" }
