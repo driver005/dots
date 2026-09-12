@@ -48,6 +48,16 @@ if [ -f /usr/lib/systemd/system-sleep/zram-hibernate.sh ]; then
     install -m 755 "$HYPERNATION_DIR/zram-hibernate.sh" /usr/lib/systemd/system-sleep/zram-hibernate.sh
 fi
 
+# 5b. Configure zram swap priority (priority 32767 for zram, 10 for NVMe)
+if [ -f "$HYPERNATION_DIR/zram-generator.conf" ]; then
+    echo "==> Installing /etc/systemd/zram-generator.conf (priority 32767)"
+    install -m 644 "$HYPERNATION_DIR/zram-generator.conf" /etc/systemd/zram-generator.conf
+fi
+if [ -f /etc/fstab ]; then
+    echo "==> Setting NVMe disk swap priority to 10 in /etc/fstab"
+    sed -i -E 's/defaults,pri=200/defaults,pri=10/g' /etc/fstab
+fi
+
 # 6. Remove broken systemd-suspend redirect symlink if present
 if [ -L /etc/systemd/system/systemd-suspend.service ]; then
     TARGET=$(readlink /etc/systemd/system/systemd-suspend.service)
