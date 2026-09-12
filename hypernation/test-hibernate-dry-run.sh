@@ -35,16 +35,23 @@ echo "=========================================================="
 echo " Safe Hibernation Dry Run (mode: $MODE)"
 echo "=========================================================="
 echo " Steps:"
-echo " 1. Set /sys/power/pm_test to '$MODE'"
-echo " 2. Trigger kernel freeze via /sys/power/state"
-echo " 3. Screen may blank for ~5 seconds during hardware freeze/thaw"
-echo " 4. Automatic return to desktop (NO poweroff, NO image write)"
-echo " 5. Reset /sys/power/pm_test to 'none'"
+echo " 1. Quiesce NVIDIA GPU via nvidia-sleep.sh (evacuates VRAM)"
+echo " 2. Set /sys/power/pm_test to '$MODE'"
+echo " 3. Trigger kernel freeze via /sys/power/state"
+echo " 4. Screen blanks for ~5 seconds during hardware freeze/thaw"
+echo " 5. Automatic return to desktop (NO poweroff, NO image write)"
+echo " 6. Restore NVIDIA GPU and reset /sys/power/pm_test to 'none'"
 echo "=========================================================="
 
-# Reset pm_test to none on exit
+NVIDIA_SUSPENDED=0
+
+# Reset pm_test and restore NVIDIA on exit
 cleanup() {
     echo none > /sys/power/pm_test 2>/dev/null || true
+    if [ "$NVIDIA_SUSPENDED" -eq 1 ]; then
+        echo "==> Restoring NVIDIA state in cleanup..."
+        /usr/bin/nvidia-sleep.sh resume 2>/dev/null || true
+    fi
     echo "==> Reset /sys/power/pm_test to none."
 }
 trap cleanup EXIT
@@ -54,12 +61,25 @@ echo "$MODE" > /sys/power/pm_test
 # Sync filesystems before test
 sync; sync
 
+# Quiesce NVIDIA driver so nv_pmops_freeze succeeds during freeze
+if [ -x /usr/bin/nvidia-sleep.sh ]; then
+    echo "==> Quiescing NVIDIA driver (saving VRAM to /var/tmp)..."
+    /usr/bin/nvidia-sleep.sh hibernate
+    NVIDIA_SUSPENDED=1
+fi
+
 echo "==> Executing kernel freeze dry run..."
 # Writing disk to /sys/power/state with pm_test != none causes the kernel to
 # execute the freeze steps up to the selected level, wait 5s, and thaw without rebooting.
 echo disk > /sys/power/state || {
     echo "==> Warning: Direct write to /sys/power/state returned $?"
 }
+
+echo "==> Resuming NVIDIA driver..."
+if [ "$NVIDIA_SUSPENDED" -eq 1 ]; then
+    /usr/bin/nvidia-sleep.sh resume
+    NVIDIA_SUSPENDED=0
+fi
 
 echo "=========================================================="
 echo " Test completed! Checking kernel log for NVIDIA / PM status:"
