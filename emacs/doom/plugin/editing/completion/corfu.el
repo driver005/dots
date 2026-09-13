@@ -78,7 +78,7 @@
 (use-package! corfu-popupinfo
   :hook (corfu-mode . corfu-popupinfo-mode)
   :config
-  (setq corfu-popupinfo-delay '(0 . 1.0))
+  (setq corfu-popupinfo-delay '(0.25 . 0.5))
   ;; No built-in command does this - `corfu-popupinfo--get-documentation'
   ;; is the same (private but stable) helper `corfu-popupinfo-documentation'
   ;; itself calls to fetch the doc string; this just routes that string to

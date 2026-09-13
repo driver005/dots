@@ -31,6 +31,12 @@ INSTALL_TABBY=false
 ask_yes_no "Install Tabby (self-hosted AI completion + repo index, Doom-only)?" && INSTALL_TABBY=true
 INSTALL_OCTOCODE=false
 ask_yes_no "Install octocode (codebase graph MCP server, Doom-only)?" && INSTALL_OCTOCODE=true
+INSTALL_OMNIROUTE=false
+ask_yes_no "Install OmniRoute (universal AI gateway on localhost:20128)?" && INSTALL_OMNIROUTE=true
+INSTALL_STRIX=false
+ask_yes_no "Install Strix (autonomous AI penetration testing tool)?" && INSTALL_STRIX=true
+INSTALL_SKILLS=false
+ask_yes_no "Install global agent skills (Caveman, Superpowers, book-to-skill, ADHD, no-ai-slop)?" && INSTALL_SKILLS=true
 INSTALL_2K_TOOLS=false
 ask_yes_no "Install 2kabhishek CLI tools (tdo, mkrepo, ghpm, git-sync, cmtr, gitrim)?" && INSTALL_2K_TOOLS=true
 INSTALL_UPDATE_HOOK=false
@@ -274,12 +280,6 @@ if [ "$INSTALL_HELIX" = true ]; then
     ./scripts/helix-install.sh
 fi
 
-if [ "$INSTALL_EMACS" = true ]; then
-    # Install Emacs + Chemacs2, registering Doom Emacs and Spacemacs as
-    # switchable profiles (see emacs/emacs-install.sh for details).
-    ./emacs/emacs-install.sh
-fi
-
 if [ "$INSTALL_TABBY" = true ]; then
     # Install Tabby (self-hosted AI completion + repo index) as a systemd --user
     # service (see tabby/tabby-install.sh for details).
@@ -291,6 +291,23 @@ if [ "$INSTALL_OCTOCODE" = true ]; then
     # SPC o g in Doom) and symlink its config (see octocode/octocode-install.sh).
     ./octocode/octocode-install.sh
 fi
+
+if [ "$INSTALL_OMNIROUTE" = true ]; then
+    # Install & autoconfigure OmniRoute (universal AI gateway on localhost:20128)
+    ./omniroute/omniroute-install.sh
+    ./omniroute/setup-omniroute.sh
+fi
+
+if [ "$INSTALL_STRIX" = true ]; then
+    # Install Strix (autonomous AI penetration testing tool)
+    ./scripts/strix-install.sh
+fi
+
+if [ "$INSTALL_SKILLS" = true ]; then
+    # Install and synchronize global agent skills
+    ./skills/install-skills.sh
+fi
+
 
 
 if [ "$INSTALL_UPDATE_HOOK" = true ]; then
@@ -321,6 +338,12 @@ if [ "$INSTALL_TMUX" = true ]; then
     # NOTE: this closes all current tmux sessions.
     echo "Killing tmux server so a fresh one picks up NOTES_DIR + new plugins..."
     tmux kill-server 2>/dev/null || true
+fi
+
+if [ "$INSTALL_EMACS" = true ]; then
+    # Install Emacs + Chemacs2, registering Doom Emacs and Spacemacs as
+    # switchable profiles (see emacs/emacs-install.sh for details).
+    ./emacs/emacs-install.sh
 fi
 
 source ~/.bashrc

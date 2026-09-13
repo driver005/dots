@@ -53,10 +53,10 @@ No flags, no external requirements.
 
 If a region won't re-fold, delete the folded region first (`C-c C-f C-d`), then fold again.
 
-## `format (+onsave)`
+## `format (+onsave +lsp)`
 Auto-formats code on save via `apheleia`. `+onsave` is what makes it automatic — without it you'd invoke formatting manually.
 
-Other flag available: `+lsp` (use the active LSP client's formatter instead of apheleia's, if it has that capability — not enabled since no `:lang` module here uses LSP).
+Flags in use: `+onsave`, `+lsp` (dispatches formatting to the active LSP client when available, falling back to local CLI formatters).
 
 No direct requirements — each language needs its own formatter binary on PATH (apheleia fails silently if missing).
 

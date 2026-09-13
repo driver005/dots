@@ -54,6 +54,7 @@
 
 ;; Package declarations are split by category under plugin/<category>/packages.el
 (load! "plugin/ai/agent/packages")
+(load! "plugin/ai/ellama/packages")
 (load! "plugin/ai/tabby/packages")
 (load! "plugin/ai/octocode/packages")
 (load! "plugin/editing/editor/packages")

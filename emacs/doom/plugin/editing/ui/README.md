@@ -1,6 +1,6 @@
 # `:ui` — enabled modules
 
-`deft`, `doom-quit`, `indent-guides`, `ligatures`, `minimap`, `nav-flash`, `neotree`, `smooth-scroll`, `unicode`, `window-select` are commented out.
+`deft`, `doom-quit`, `indent-guides`, `ligatures`, `minimap`, `nav-flash`, `neotree`, `smooth-scroll`, `tabs`, `unicode`, `window-select` are commented out.
 
 ## `doom`
 Core visual theme engine (fonts, colors, `doom-themes`, split/border styling) — "what makes Doom look like Doom."
@@ -14,10 +14,10 @@ No flags. Requires `nerd-icons`' fonts (installed automatically by `doom install
 
 No dedicated keybindings — it's a static buffer, shortcuts on it are just links.
 
-## `emoji (+unicode +github)`
+## `emoji (+unicode)`
 Emoji rendering/picker support.
 
-Flags in use: `+unicode` (render 🙂-style unicode emoji), `+github` (render `:smile:`-style GitHub shortcodes). Other flag available: `+ascii` (render plain-text emoji like `:)`).
+Flags in use: `+unicode` (render native unicode emoji glyphs). Dropped `+github` and `+ascii` to eliminate background regex scanning overhead (`emojify-update-visible-emojis-background-after-command`).
 
 Requires Emacs compiled with PNG support (standard) — ImageMagick recommended for resizing (already installed via `install-requirements.sh` for dired previews, so covered).
 
@@ -34,10 +34,10 @@ No flags, no external requirements.
 | `SPC s p` | Search project for a string |
 | `SPC s b` | Search buffer for a string |
 
-## `modeline`
-The Atom-inspired status bar, plus an API other packages hook into.
+## `modeline (+light)`
+Doom's lightweight native modeline, dropping the `doom-modeline` package dependency to eliminate post-command hook churn and redisplay lag.
 
-Other flag available: `+light` (drops the `doom-modeline` dependency for a lighter, less-featureful modeline — useful if you hit perf issues; not enabled here).
+Flags in use: `+light`.
 
 No external requirements, no dedicated keybindings.
 
@@ -56,15 +56,13 @@ No external requirements.
 - `ESC` or `C-g` — dismiss a popup.
 - `SPC h f set-popup-rule!` — look up how to write your own popup placement rules.
 
-## `tabs`
-A literal browser-tab-style bar for buffers (distinct from `workspaces` below, which are whole separate buffer-sets, not per-buffer tabs).
+## `tabs` *(disabled)*
+Previously enabled `centaur-tabs`. Disabled to eliminate redisplay lag and headerline recalculation overhead across buffer/window switches. Use `workspaces` or buffer switching (`SPC ,` / `SPC b b`) instead.
 
-No flags, no external requirements, no keybindings documented beyond standard tab-bar interaction (click/scroll).
-
-## `treemacs`
+## `treemacs` (+lsp)
 Sidebar project file-tree (VSCode-Explorer/NERDTree-style).
 
-Other flag available: `+lsp` (adds `lsp-treemacs` integration + shortcuts — not enabled, no `:lang` module here uses LSP).
+Flags in use: `+lsp` (adds `lsp-treemacs` integration: symbols view, error list, references, and workspace diagnostics).
 
 Uses `python3` if present on PATH to show git status per-file (optional, not a hard requirement).
 

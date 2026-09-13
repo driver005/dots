@@ -1,6 +1,6 @@
 # `:tools` — enabled modules
 
-`ansible`, `direnv`, `editorconfig`, `tmux`, `tree-sitter`, and `upload` are commented out in `modules.el` and not active.
+`ansible`, `direnv`, `editorconfig`, `tmux`, and `upload` are commented out in `modules.el` and not active.
 
 ## `biblio`
 Bibliography/citation management for academic writing.
@@ -23,10 +23,10 @@ No flags. Requires per-language debug adapters, installed separately per the [da
 
 - `SPC o d` (`M-x +debugger/start`) — start the debugger, prompts for a debugger configuration (`<up>`/`<down>` to browse options).
 
-## `docker`
+## `docker` (+lsp +tree-sitter)
 Dockerfile/docker-compose editing plus container management from Emacs (via `docker.el`'s tablist-based UI).
 
-Flags in use: none. Other flags available: `+lsp` (needs `docker-langserver`), `+tree-sitter` (needs Emacs 29.1+ and `:tools tree-sitter`).
+Flags in use: `+lsp` (needs `docker-langserver`), `+tree-sitter` (uses `dockerfile-ts-mode` via `:tools tree-sitter`).
 
 Requires: `docker`, `docker-compose`, `docker-machine` binaries on PATH. `install-requirements.sh` installs `docker`+`docker-compose` if missing — it does **not** enable/start the daemon or add you to the `docker` group, do that yourself (`systemctl enable --now docker.service`, `sudo usermod -aG docker $USER`).
 
@@ -95,12 +95,12 @@ No flags. README says an OpenAI API key is required *only if you use the OpenAI 
 
 Note: this repo's own `magit-extras.el` (also in this folder) adds `SPC g c g` → `magit-gptcommit-generate` (Gemini-backed AI commit messages) and `C-c C-g` in commit-message buffers → `magit-gptcommit-commit-accept`. `magit-todos` is also enabled there (auto-scans for TODOs in the magit status buffer).
 
-## `lsp (+eglot)`
-The LSP client framework itself. `+eglot` picks Emacs's built-in `eglot` over the heavier `lsp-mode` package.
+## `lsp (+booster)`
+The LSP client framework itself. Uses `lsp-mode` with `+booster` (`emacs-lsp-booster` integration for fast bytecode JSON parsing).
 
-Flags in use: `+eglot`. Other flags available: `+booster` (Emacs 29-only, speeds up LSP JSON parsing via `emacs-lsp-booster`, eglot-only), `+peek` (use `lsp-ui-peek` for lookup results instead of jumping directly).
+Flags in use: `+booster`. Other flags available: `+eglot` (use built-in eglot instead of lsp-mode), `+peek` (use `lsp-ui-peek` for lookup results instead of jumping directly).
 
-**Currently does nothing** — no `:lang` module in this config has the `+lsp` flag enabled (only `emacs-lisp`, `markdown`, `org`, `sh` are active, and none use `+lsp`). Per-language LSP servers are a separate, per-language install — not handled generically by `install-requirements.sh`.
+Active across all enabled `:lang` modules supporting LSP (C/C++, Dart, Go, GraphQL, JSON, Java, JavaScript/TypeScript, Lua, Markdown, Nix, PureScript, Python, Rust, Shell, Web, YAML, Zig) as well as `:tools docker` and `:tools terraform`.
 
 | Key | Action |
 |---|---|
@@ -141,10 +141,10 @@ No flags. Requires the `epdfinfo` server binary, which `pdf-tools` builds for yo
 
 **No documented keybindings** in the module's README beyond standard `pdf-view-mode` bindings (not enumerated there).
 
-## `terraform`
+## `terraform` (+lsp)
 Terraform HCL editing support.
 
-Flags in use: none. Other flag available: `+lsp` (needs `terraform-ls` or `terraform-lsp`).
+Flags in use: `+lsp` (needs `terraform-ls` or `terraform-lsp`).
 
 Requires the `terraform` binary on PATH. `install-requirements.sh` installs it via `yay` (AUR-only on Arch since HashiCorp's license change) if `yay` is present, otherwise prints manual-install instructions; on apt it always prints instructions since Terraform needs HashiCorp's third-party repo added first.
 
@@ -153,3 +153,10 @@ Requires the `terraform` binary on PATH. `install-requirements.sh` installs it v
 | `<localleader> i` | `terraform init` |
 | `<localleader> p` | `terraform plan` |
 | `<localleader> a` | `terraform apply` |
+
+## `tree-sitter`
+Tree-sitter parser infrastructure for Emacs.
+
+Integrates with Emacs 31 built-in `treesit` support and maps language modes to their `*-ts-mode` variants. Reuses pre-compiled tree-sitter grammars from `helix/runtime/grammars/*.so` linked into `~/.emacs.doom.d/.local/etc/tree-sitter/`.
+
+No flags in use. Active across all language modules configured with `+tree-sitter`.

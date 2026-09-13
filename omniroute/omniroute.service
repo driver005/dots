@@ -1,0 +1,16 @@
+[Unit]
+Description=OmniRoute - Universal AI Gateway Service
+Documentation=https://github.com/diegosouzapw/OmniRoute
+After=network.target
+
+[Service]
+Type=simple
+Environment="PORT=20128"
+Environment="OMNIROUTE_PORT=20128"
+Environment="PATH=%h/.npm-global/bin:%h/.local/bin:/usr/local/bin:/usr/bin"
+ExecStart=%h/.npm-global/bin/omniroute
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

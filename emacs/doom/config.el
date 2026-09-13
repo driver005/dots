@@ -19,6 +19,7 @@
 (load! "plugin/dev/tools/magit-extras")
 (load! "plugin/dev/lang/config")
 (load! "plugin/ai/gptel/config")
+(load! "plugin/ai/ellama/config")
 (load! "plugin/ai/agent/config")
 (load! "plugin/ai/tabby/config")
 (load! "plugin/ai/tabby/balancer")
@@ -30,6 +31,22 @@
 ;; Increase how much data Emacs reads from background processes (like language servers)
 (setq read-process-output-max (* 1024 1024 3)) ;; 3mb
 
-;; Optimize Garbage Collection (reduce lag spikes during heavy usage)
-(setq gc-cons-threshold (* 100 1024 1024)       ;; 100mb
-      gcmh-high-cons-threshold (* 100 1024 1024)) ;; 100mb for Doom's GC Magic Hack
+;; Optimize Garbage Collection (reduce lag spikes during heavy usage with High-RAM tuning)
+(setq gc-cons-threshold (* 256 1024 1024)       ;; 256mb
+      gcmh-high-cons-threshold (* 512 1024 1024) ;; 512mb for Doom's GC Magic Hack
+      gcmh-low-cons-threshold (* 32 1024 1024)   ;; 32mb idle GC threshold
+      gcmh-idle-delay 3)
+
+;; JIT Font-Lock deferral (prevents fontification freezing during rapid cursor movement / scrolling)
+(setq jit-lock-defer-time 0.05
+      jit-lock-chunk-size 4096)
+
+;; LSP performance tuning
+(after! lsp-mode
+  (setq lsp-idle-delay 0.50
+        lsp-log-io nil
+        lsp-enable-symbol-highlighting nil
+        lsp-enable-folding nil))
+
+;; Auto-disable expensive features for large files
+(global-so-long-mode 1)

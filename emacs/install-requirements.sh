@@ -359,3 +359,18 @@ if [ "$PM" = pacman ] && ! command_exists buildifier; then
 elif [ "$PM" = apt ] && ! command_exists buildifier; then
   echo "Skipping buildifier: no apt package, see https://github.com/bazelbuild/buildtools/releases"
 fi
+
+# markdown compiler (marked / discount): backs :lang markdown (`markdown-preview`).
+# Emacs +markdown-compile-functions searches for: marked, pandoc, markdown, or multimarkdown.
+if ! command_exists markdown && ! command_exists pandoc && ! command_exists marked && ! command_exists multimarkdown; then
+  if command_exists npm; then
+    echo "==> marked (npm) (:lang markdown preview)"
+    npm install -g --prefix "${HOME}/.npm-global" marked 2>/dev/null || sudo npm install -g marked
+  elif [ "$PM" = pacman ]; then
+    echo "==> discount (:lang markdown preview)"
+    $PKG_INSTALL discount
+  elif [ "$PM" = apt ]; then
+    echo "==> discount (:lang markdown preview)"
+    $PKG_INSTALL discount
+  fi
+fi

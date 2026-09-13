@@ -74,6 +74,16 @@ done
 echo "==> spell/grammar checkers requirements (aspell, LanguageTool)"
 "$(dirname "${BASH_SOURCE[0]}")/install-requirements.sh"
 
+echo "==> link tree-sitter grammars from Helix runtime"
+mkdir -p "$DOOM_DIR/.local/etc/tree-sitter"
+if [ -d "$PWD/helix/runtime/grammars" ]; then
+  for grammar in "$PWD"/helix/runtime/grammars/*.so; do
+    [ -e "$grammar" ] || continue
+    lang=$(basename "$grammar" .so)
+    ln -sf "$grammar" "$DOOM_DIR/.local/etc/tree-sitter/libtree-sitter-${lang}.so"
+  done
+fi
+
 echo "==> doom install (--force suppresses prompts, safe to re-run)"
 DOOMDIR="$HOME/.config/doom" "$DOOM_DIR/bin/doom" install --force --env --install
 
