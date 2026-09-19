@@ -306,6 +306,14 @@ fi
 if [ "$INSTALL_SKILLS" = true ]; then
     # Install and synchronize global agent skills
     ./skills/install-skills.sh
+    # Register the default-agent-rules Claude Code plugin so i-have-adhd +
+    # no-ai-slop (installed just above) actually auto-load every session
+    # instead of sitting unused - see agents/claude/claude-install.sh.
+    ./agents/claude/claude-install.sh
+    # Same fix for agy/gemini-cli: caveman/superpowers/i-have-adhd/no-ai-slop
+    # are present there too but don't auto-load on their own - see
+    # agents/gemini/gemini-install.sh.
+    ./agents/gemini/gemini-install.sh
 fi
 
 

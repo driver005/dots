@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "default-agent-rules",
+  "description": "Local single-plugin marketplace for default-agent-rules (auto-loads i-have-adhd + no-ai-slop every session).",
+  "owner": {
+    "name": "Adrian"
+  },
+  "plugins": [
+    {
+      "name": "default-agent-rules",
+      "description": "Auto-loads i-have-adhd and no-ai-slop skill guidance every session via a SessionStart hook.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

@@ -71,6 +71,15 @@ for name in doom spacemacs; do
   ln -sfnv "$PWD/emacs/$name" "$HOME/.config/$name"
 done
 
+echo "==> org data symlink (~/org -> ../dots/org, git-synced)"
+# org-directory (plugin/org/config.el) stays "~/org/" unchanged - only the
+# real directory moves, so the config itself carries no machine-specific
+# path. Same backup-then-symlink safety as the doom/spacemacs loop above.
+if [ -e "$HOME/org" ] && [ ! -L "$HOME/org" ]; then
+  mv "$HOME/org" "$HOME/org.bak.$(date +%s)"
+fi
+ln -sfnv "$PWD/org" "$HOME/org"
+
 echo "==> spell/grammar checkers requirements (aspell, LanguageTool)"
 "$(dirname "${BASH_SOURCE[0]}")/install-requirements.sh"
 
@@ -83,6 +92,26 @@ if [ -d "$PWD/helix/runtime/grammars" ]; then
     ln -sf "$grammar" "$DOOM_DIR/.local/etc/tree-sitter/libtree-sitter-${lang}.so"
   done
 fi
+
+echo "==> LSP_USE_PLISTS (lsp-mode perf: deserialize JSON as plists, not hash-tables)"
+# `lsp-protocol.el' reads this via `eval-and-compile' - it's baked into
+# lsp-mode's own byte/native-compiled code the moment it's built below, not
+# read at Emacs startup. Must be exported *before* `doom install'/`doom
+# build' run, or the plists path never gets compiled in. Persisted to shell
+# rc too, so a future `doom sync' from an interactive shell still has it.
+export LSP_USE_PLISTS=true
+PLISTS_MARKER="# emacs-install.sh: lsp-mode plists perf flag"
+PLISTS_BLOCK="$PLISTS_MARKER
+export LSP_USE_PLISTS=true"
+for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+  if [ -e "$rc" ]; then
+    if ! grep -qF "$PLISTS_MARKER" "$rc"; then
+      printf '\n%s\n' "$PLISTS_BLOCK" >> "$rc"
+    else
+      echo "  (already in $rc, leaving as-is)"
+    fi
+  fi
+done
 
 echo "==> doom install (--force suppresses prompts, safe to re-run)"
 DOOMDIR="$HOME/.config/doom" "$DOOM_DIR/bin/doom" install --force --env --install

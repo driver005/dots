@@ -89,7 +89,7 @@ omniroute setup --non-interactive >/dev/null 2>&1 || true
 
 # Explicitly ensure SQLite DB flags are set so web dashboard never prompts wizard
 if command_exists sqlite3 && [ -f "$DB_PATH" ]; then
-  sqlite3 "$DB_PATH" << 'EOF'
+  sqlite3 "$DB_PATH" <<'EOF'
 CREATE TABLE IF NOT EXISTS key_value (
   namespace TEXT NOT NULL,
   key TEXT NOT NULL,
@@ -156,7 +156,7 @@ if [ -n "$OMNI_KEY" ]; then
   mkdir -p "$DATA_DIR"
   touch "$ENV_PATH"
   if ! grep -q "OMNIROUTE_API_KEY=" "$ENV_PATH"; then
-    echo "OMNIROUTE_API_KEY=${OMNI_KEY}" >> "$ENV_PATH"
+    echo "OMNIROUTE_API_KEY=${OMNI_KEY}" >>"$ENV_PATH"
   else
     sed -i "s|^OMNIROUTE_API_KEY=.*|OMNIROUTE_API_KEY=${OMNI_KEY}|" "$ENV_PATH"
   fi
@@ -170,7 +170,8 @@ fi
 # ------------------------------------------------------------------------------
 echo
 echo "[5/9] Updating shell environment variables..."
-ENV_SNIPPET=$(cat << EOF
+ENV_SNIPPET=$(
+  cat <<EOF
 
 # OmniRoute AI Gateway (http://localhost:${PORT})
 # claude and agy talk directly to their native APIs — no ANTHROPIC_BASE_URL / GOOGLE_GEMINI_BASE_URL here.
@@ -178,7 +179,6 @@ ENV_SNIPPET=$(cat << EOF
 export OMNIROUTE_URL="http://localhost:${PORT}/v1"
 export OPENAI_BASE_URL="http://localhost:${PORT}/v1"
 export OMNIROUTE_API_KEY="${OMNI_KEY}"
-export CLAUDE_CODE_AUTO_COMPACT_WINDOW="190000"
 
 # Optional aliases to send claude/agy through OmniRoute explicitly
 alias claude-omni='ANTHROPIC_BASE_URL=http://localhost:${PORT} claude'
@@ -194,7 +194,7 @@ update_rc_file() {
       sed -i '/# OmniRoute AI Gateway/,/alias agy-omni=/d' "$rc_file" 2>/dev/null || true
       sed -i '/# OmniRoute Universal AI Gateway/,/export CLAUDE_CODE_AUTO_COMPACT_WINDOW=/d' "$rc_file" 2>/dev/null || true
     fi
-    echo "$ENV_SNIPPET" >> "$rc_file"
+    echo "$ENV_SNIPPET" >>"$rc_file"
     echo "✓ Updated $rc_file with OmniRoute variables."
   fi
 }
@@ -206,8 +206,6 @@ update_rc_file "$HOME/.config/zshrc/.zshrc"
 export OMNIROUTE_URL="http://localhost:${PORT}/v1"
 export OPENAI_BASE_URL="http://localhost:${PORT}/v1"
 export OMNIROUTE_API_KEY="${OMNI_KEY}"
-export CLAUDE_CODE_AUTO_COMPACT_WINDOW="190000"
-
 
 # ------------------------------------------------------------------------------
 # 6. Configure Emacs (Doom Emacs gptel) & Local AI CLI Tools (Claude, AGY, OpenCode, Aider)
@@ -259,7 +257,6 @@ if command_exists omniroute; then
   echo "✓ Aider CLI configured to route through OmniRoute."
 fi
 
-
 # ------------------------------------------------------------------------------
 # 7. Configure Stacked Token Compression & Headroom (Netflix SLM)
 # ------------------------------------------------------------------------------
@@ -308,7 +305,8 @@ echo "✓ Compression engines active: RTK + Headroom + Caveman + LLMLingua-2 (SL
 # ------------------------------------------------------------------------------
 echo
 echo "[8/9] Deploying default behavioral skills across AI agents..."
-DEFAULT_RULES_BLOCK=$(cat << 'EOF'
+DEFAULT_RULES_BLOCK=$(
+  cat <<'EOF'
 <!-- default-agent-rules: caveman + i-have-adhd + no-ai-slop -->
 # Core Behavioral Rules (Default)
 
@@ -342,20 +340,20 @@ EOF
 # 8a. Claude Code (~/.claude/CLAUDE.md)
 if [ -f "$HOME/.claude/CLAUDE.md" ]; then
   if ! grep -q "default-agent-rules" "$HOME/.claude/CLAUDE.md"; then
-    echo "" >> "$HOME/.claude/CLAUDE.md"
-    echo "$DEFAULT_RULES_BLOCK" >> "$HOME/.claude/CLAUDE.md"
+    echo "" >>"$HOME/.claude/CLAUDE.md"
+    echo "$DEFAULT_RULES_BLOCK" >>"$HOME/.claude/CLAUDE.md"
   fi
   echo "✓ Claude Code CLAUDE.md updated."
 fi
 
 # 8b. OpenCode (~/.config/opencode/AGENTS.md)
 mkdir -p "$HOME/.config/opencode"
-echo "$DEFAULT_RULES_BLOCK" > "$HOME/.config/opencode/AGENTS.md"
+echo "$DEFAULT_RULES_BLOCK" >"$HOME/.config/opencode/AGENTS.md"
 echo "✓ OpenCode AGENTS.md updated."
 
 # 8c. AGY / Repository GEMINI.md & AGENTS.md
-echo "$DEFAULT_RULES_BLOCK" > "$DOTS_DIR/GEMINI.md"
-echo "$DEFAULT_RULES_BLOCK" > "$DOTS_DIR/AGENTS.md"
+echo "$DEFAULT_RULES_BLOCK" >"$DOTS_DIR/GEMINI.md"
+echo "$DEFAULT_RULES_BLOCK" >"$DOTS_DIR/AGENTS.md"
 echo "✓ Repository GEMINI.md & AGENTS.md updated."
 
 # 8d. OmniRoute Middleware Hook (injects into every request passing through gateway)
@@ -474,5 +472,3 @@ echo "  • Local CLIs Connected:  claude, agy/gemini, opencode, aider"
 echo "  • Emacs (Doom):          SPC o l l (default: OmniRoute with model: auto)"
 echo "  • Systemd service:       systemctl --user status omniroute.service"
 echo "============================================================"
-
-

@@ -193,6 +193,27 @@ elif [ "$PM" = apt ] && ! command_exists emacs-lsp-booster; then
   echo "Skipping emacs-lsp-booster: no apt package, see https://github.com/blahgeek/emacs-lsp-booster"
 fi
 
+# rassumfrassum: multi-server proxy for eglot (e.g. ty + ruff for Python,
+# typescript-language-server + eslint for JS). Sits between eglot and
+# multiple real LSP servers, fans out requests to all of them. Pip install.
+if ! command_exists rass; then
+  echo "==> rassumfrassum (eglot multi-server proxy)"
+  python3 -m pip install --user rassumfrassum 2>/dev/null || \
+    python3 -m pip install --user --break-system-packages rassumfrassum
+fi
+
+# lldb: backs :tools debugger via dape (Debug Adapter Protocol). Ships
+# lldb-dap (the DAP server binary) on LLVM 17+. On apt, install the
+# full lldb package which includes lldb-dap since Debian 13 / Ubuntu 24.04.
+if ! command_exists lldb-dap && ! command_exists gdb; then
+  echo "==> lldb or gdb (dape debugger backends for C/C++)"
+  if [ "$PM" = pacman ]; then
+    $PKG_INSTALL lldb
+  else
+    $PKG_INSTALL lldb
+  fi
+fi
+
 # jupyter: backs :tools ein (Jupyter notebooks in Emacs).
 if ! command_exists jupyter; then
   echo "==> jupyter (:tools ein)"
@@ -222,6 +243,15 @@ fi
 if ! command_exists notmuch; then
   echo "==> notmuch + isync (:email notmuch)"
   $PKG_INSTALL notmuch isync
+fi
+
+# notmuch's own config (~/.notmuch-config, DB location, name/email) - `notmuch
+# setup` is interactive (prompts for name, email, Maildir path), so it only
+# runs once, when that file doesn't exist yet. ~/.mbsyncrc (the actual IMAP
+# account/auth) still isn't touched here - stays manual, credential-specific.
+if command_exists notmuch && [ ! -f "${HOME}/.notmuch-config" ]; then
+  echo "==> notmuch setup (creates ~/.notmuch-config)"
+  notmuch setup
 fi
 
 # --- :lang language servers (each backs that language's +lsp flag) ---
@@ -339,6 +369,41 @@ fi
 if ! command_exists nil && ! command_exists rnix-lsp; then
   echo "Skipping nil/rnix-lsp (:lang nix +lsp): no Nix package manager and no distro package found."
   echo "  Install manually, e.g. via a Nix install, or see https://github.com/oxalica/nil"
+fi
+
+# marksman: backs :lang markdown +lsp. Official pacman package. Compiled
+# .NET/F# binary, no npm distribution - apt has no package either.
+if ! command_exists marksman; then
+  echo "==> marksman (:lang markdown +lsp)"
+  if [ "$PM" = pacman ]; then
+    $PKG_INSTALL marksman
+  else
+    echo "Skipping marksman: no apt package, see https://github.com/artempyanykh/marksman/releases"
+  fi
+fi
+
+# bash-language-server: backs :lang sh +lsp. Official pacman package; npm
+# global install on apt (same upstream project either way).
+if ! command_exists bash-language-server; then
+  echo "==> bash-language-server (:lang sh +lsp)"
+  if [ "$PM" = pacman ]; then
+    $PKG_INSTALL bash-language-server
+  else
+    sudo npm install -g bash-language-server
+  fi
+fi
+
+# dockerfile-language-server (binary: docker-langserver): backs :tools
+# docker +lsp. Official pacman package; npm global install on apt (the
+# npm package is named dockerfile-language-server-nodejs, not the binary
+# name itself).
+if ! command_exists docker-langserver; then
+  echo "==> dockerfile-language-server (:tools docker +lsp)"
+  if [ "$PM" = pacman ]; then
+    $PKG_INSTALL dockerfile-language-server
+  else
+    sudo npm install -g dockerfile-language-server-nodejs
+  fi
 fi
 
 # bazel + buildifier: not a Doom :lang module at all (added manually via
