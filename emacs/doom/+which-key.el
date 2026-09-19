@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 (after! which-key
   (setq which-key-show-operator-state-maps t))
 (defun +which-key-scoped-replacement (expected label)
