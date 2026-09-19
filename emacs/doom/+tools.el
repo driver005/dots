@@ -71,3 +71,5 @@
   (setq dired-listing-switches "-algho --group-directories-first")
   (remove-hook 'dired-mode-hook #'dired-omit-mode)
   (add-hook 'dired-mode-hook (lambda () (dired-omit-mode -1)) t))
+(after! dired
+  (remove-hook 'dired-mode-hook #'+vc-gutter-enable-maybe-h))
