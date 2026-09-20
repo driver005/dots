@@ -28,3 +28,8 @@
 (after! evil-multiedit
   (map! :map evil-multiedit-mode-map
         :n "<escape>" #'evil-multiedit-abort))
+
+;; Nuke the file submenu and make SPC f open find-file directly
+(map! :leader
+      "f" nil
+      :desc "Find file" "f" #'find-file)
