@@ -38,7 +38,6 @@
 (map! :leader
       "." nil)
 
-
 ;; Custom Emacs App Picker (Mirror of SPC o)
 (defun +custom-emacs-app-picker ()
   "A custom app launcher mirroring the SPC o menu using Vertico UI."
@@ -92,16 +91,12 @@
       (let ((choice (completing-read "Launch App (Alt+Key for instant): " apps nil t)))
         (call-interactively (alist-get choice apps nil nil #'equal))))))
 
-(map! :leader
-      (:prefix-map ("o" . "open")
-       :desc "App Picker" "o" #'+custom-emacs-app-picker))
-
 ;; Move all llm bindings from SPC o l to SPC l
 (map! :leader
       "l" (lookup-key doom-leader-map (kbd "o l"))
       "o l" nil)
 
-;; Org agenda and capture already live under SPC n (notes), so remove from SPC o
+;; Override the entire SPC o prefix and replace it with our custom App Picker
 (map! :leader
-      "o a" nil
-      "o A" nil)
+      "o" nil
+      :desc "App Picker" "o" #'+custom-emacs-app-picker)
