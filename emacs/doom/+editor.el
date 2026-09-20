@@ -60,7 +60,7 @@
                  ("y | Tabby Menu" . tabby-menu)))
          (map (make-sparse-keymap)))
     
-    (set-keymap-parent map minibuffer-local-completion-map)
+    (set-keymap-parent map vertico-map)
     (cl-loop for (key . cmd) in '(("-" . dired-jump)
                                   ("A" . org-agenda)
                                   ("b" . browse-url-of-file)
