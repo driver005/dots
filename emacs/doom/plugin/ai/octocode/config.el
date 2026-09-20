@@ -106,12 +106,7 @@ server, it doesn't index anything."
 ;; `+octocode-connect' itself still exists, just no longer needs a manual
 ;; entry point for the common case (disconnect + reconnect is still
 ;; reachable via `M-x +octocode-connect' if actually needed).
-(map! :leader
-      (:prefix-map ("o g" . "octocode")
-       :desc "Disconnect" "d" #'+octocode-disconnect
-       :desc "Index project" "i" #'+octocode-index
-       :desc "Progress snapshot" "p" #'+octocode-progress
-       :desc "Status / MCP hub" "s" #'+octocode-status))
+
 
 ;; Autoload octocode + Tabby whenever an AI session actually starts
 ;; (gptel or agent-shell), instead of requiring `SPC o g c'/`SPC o y t'

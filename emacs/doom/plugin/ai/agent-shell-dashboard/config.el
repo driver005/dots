@@ -4,6 +4,4 @@
   :after agent-shell
   :commands (agent-shell-dashboard)
   :config
-  (map! :leader
-        (:prefix-map ("o d" . "dashboard")
-         :desc "Agent shell dashboard" "d" #'agent-shell-dashboard)))
+  

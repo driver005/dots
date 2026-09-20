@@ -25,11 +25,4 @@
 ;; (tabby), `g' (octocode) - same depth Doom itself uses (e.g. `SPC o a').
 ;; `c' for Claude - `a' itself is Doom's own org-agenda group (stock,
 ;; :lang org).
-(map! :leader
-      (:prefix-map ("o c" . "agent")
-       :desc "Start Claude Agent (ACP)" "c" #'agent-shell-anthropic-start-claude-code
-       :desc "Agent shell (pick agent)" "p" #'agent-shell)
-      ;; `t'/`g' (tabby/octocode) are toolboxes with no one obvious action, so
-      ;; they stay nested groups. Agent-shell has one: start a Claude session.
-      ;; `SPC o C' is a direct shortcut to that, sibling of the `o c' group.
-      :desc "Open Claude agent session" "o C" #'agent-shell-anthropic-start-claude-code)
+

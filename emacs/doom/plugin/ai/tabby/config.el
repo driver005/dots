@@ -495,4 +495,4 @@ already present) and restarts tabbyml.service to pick it up."
 ;; One binding, not a prefix-map: every action (reindex, log, web UI, index
 ;; project, completion toggle/trigger) lives in `tabby-menu' (menu.el)
 ;; instead, so there's only one key to remember.
-(map! :leader :desc "Tabby menu" "o y" #'tabby-menu)
+;; (map! :leader :desc "Tabby menu" "o y" #'tabby-menu)
