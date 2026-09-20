@@ -44,7 +44,6 @@
   "A custom app launcher mirroring the SPC o menu using Vertico UI."
   (interactive)
   (let* ((apps '(("- | Dired" . dired-jump)
-                 ("A | Org agenda" . org-agenda)
                  ("b | Default browser" . browse-url-of-file)
                  ("d | Start a debugger" . +debugger/start)
                  ("f | New frame" . make-frame)
@@ -63,7 +62,6 @@
     
     (set-keymap-parent map vertico-map)
     (cl-loop for (key . cmd) in '(("-" . dired-jump)
-                                  ("A" . org-agenda)
                                   ("b" . browse-url-of-file)
                                   ("d" . +debugger/start)
                                   ("f" . make-frame)
@@ -79,7 +77,7 @@
                                   ("p" . +treemacs/toggle)
                                   ("y" . tabby-menu))
              do (let* ((func `(lambda () (interactive) (run-at-time 0 nil #',cmd) (abort-recursive-edit)))
-                       (altgr-char (cdr (assoc key '(("-" . "¥") ("A" . "Á") ("b" . "·") ("d" . "ð") 
+                       (altgr-char (cdr (assoc key '(("-" . "¥") ("b" . "·") ("d" . "ð") 
                                                      ("r" . "ë") ("R" . "Ë") ("m" . "µ") 
                                                      ("t" . "þ") ("T" . "Þ") ("c" . "©") ("e" . "é")
                                                      ("o" . "ó") ("p" . "ö") ("y" . "ü"))))))
@@ -102,3 +100,8 @@
 (map! :leader
       "l" (lookup-key doom-leader-map (kbd "o l"))
       "o l" nil)
+
+;; Org agenda and capture already live under SPC n (notes), so remove from SPC o
+(map! :leader
+      "o a" nil
+      "o A" nil)
