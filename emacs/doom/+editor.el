@@ -82,4 +82,5 @@
         (call-interactively (alist-get choice apps nil nil #'equal))))))
 
 (map! :leader
-      :desc "App Picker (Vertico)" "o o" #'+custom-emacs-app-picker)
+      (:prefix-map ("o" . "open")
+       :desc "App Picker" "o" #'+custom-emacs-app-picker))
