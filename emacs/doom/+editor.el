@@ -109,3 +109,8 @@
 ;; Add ChatGPT and Gemini to online search (SPC s o)
 (add-to-list '+lookup-provider-url-alist '("ChatGPT" "https://chatgpt.com/?q=%s"))
 (add-to-list '+lookup-provider-url-alist '("Google Gemini" "https://gemini.google.com/app?prompt=%s&autosubmit=true"))
+
+;; Autoload and bind dirvish-fd for flattening directories
+(autoload 'dirvish-fd "dirvish-fd" "Flatten directory using fd" t)
+(map! :leader
+      :desc "Flatten directory (dirvish)" "f F" #'dirvish-fd)
