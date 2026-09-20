@@ -96,9 +96,10 @@
         (call-interactively (alist-get choice apps nil nil #'equal))))))
 
 ;; Move all llm bindings from SPC o l to SPC l
-(map! :leader
-      "l" (lookup-key doom-leader-map (kbd "o l"))
-      "o l" nil)
+;; We wrap this in a check so it doesn't crash on subsequent reloads
+;; when SPC o is already a command instead of a prefix!
+(when (keymapp (lookup-key doom-leader-map (kbd "o")))
+  (map! :leader "l" (lookup-key doom-leader-map (kbd "o l"))))
 
 ;; Override the entire SPC o prefix and replace it with our custom App Picker
 (map! :leader
