@@ -74,8 +74,31 @@
                  ("m | Git (Magit)" . magit-status)
                  ("c | Calculator" . calc)
                  ("p | System Monitor" . proced)))
-         (choice (completing-read "Launch App: " apps nil t)))
-    (call-interactively (alist-get choice apps nil nil #'equal))))
+         (map (make-sparse-keymap)))
+    
+    (set-keymap-parent map minibuffer-local-completion-map)
+    (cl-loop for (key . cmd) in '(("-" . dired-jump)
+                                  ("A" . org-agenda)
+                                  ("b" . browse-url-of-file)
+                                  ("d" . +debugger/start)
+                                  ("f" . make-frame)
+                                  ("F" . select-frame-by-name)
+                                  ("r" . +eval/open-repl-other-window)
+                                  ("R" . +eval/open-repl-same-window)
+                                  ("t" . eshell)
+                                  ("m" . magit-status)
+                                  ("c" . calc)
+                                  ("p" . proced))
+             do (define-key map (kbd (concat "M-" key)) 
+                  `(lambda () 
+                     (interactive) 
+                     (run-at-time 0 nil #',cmd) 
+                     (abort-recursive-edit))))
+
+    (minibuffer-with-setup-hook
+        (lambda () (use-local-map map))
+      (let ((choice (completing-read "Launch App (Alt+Key for instant): " apps nil t)))
+        (call-interactively (alist-get choice apps nil nil #'equal))))))
 
 (map! :leader
       :desc "App Picker (Vertico)" "o o" #'+custom-emacs-app-picker)
