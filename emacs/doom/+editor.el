@@ -97,3 +97,8 @@
 (map! :leader
       (:prefix-map ("o" . "open")
        :desc "App Picker" "o" #'+custom-emacs-app-picker))
+
+;; Move all llm bindings from SPC o l to SPC l
+(map! :leader
+      "l" (lookup-key doom-leader-map (kbd "o l"))
+      "o l" nil)
