@@ -333,6 +333,8 @@ fi
 # Chrome/Firefox store manually, then import dots/vimium/vimium.json via its
 # options page (Import/Export Options). See dots/vimium/README.md.
 echo "Vimium: install the extension manually, then import dots/vimium/vimium.json (see dots/vimium/README.md)."
+echo "Gemini URL Prompt: install the extension manually from the Chrome web store to enable URL prefilling for Emacs's SPC s o."
+
 # Source zshrc if it exists
 if [ -f "$HOME/.config/zshrc/.zshrc" ]; then
     zsh -c "source ~/.config/zshrc/.zshrc"
