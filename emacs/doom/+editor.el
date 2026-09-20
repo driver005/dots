@@ -33,3 +33,7 @@
 (map! :leader
       "f" nil
       :desc "Find file" "f" #'find-file)
+
+;; Remove redundant SPC . binding since SPC f handles it now
+(map! :leader
+      "." nil)
