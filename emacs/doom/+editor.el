@@ -70,11 +70,15 @@
                                   ("m" . magit-status)
                                   ("c" . calc)
                                   ("p" . proced))
-             do (let ((func `(lambda () (interactive) (run-at-time 0 nil #',cmd) (abort-recursive-edit))))
-                  (define-key map (kbd (concat "M-" key)) func)   ;; Left Alt (Meta)
-                  (define-key map (kbd (concat "A-" key)) func)   ;; Right Alt (AltGr sometimes maps to A-)
-                  (define-key map (kbd (concat "s-" key)) func)   ;; Windows/Super Key
-                  (define-key map (kbd (concat "C-c " key)) func))) ;; Ctrl+C fallback
+             do (let* ((func `(lambda () (interactive) (run-at-time 0 nil #',cmd) (abort-recursive-edit)))
+                       (altgr-char (cdr (assoc key '(("-" . "¥") ("A" . "Á") ("b" . "·") ("d" . "ð") 
+                                                     ("r" . "ë") ("R" . "Ë") ("t" . "þ") ("m" . "µ") 
+                                                     ("c" . "©") ("p" . "ö"))))))
+                  (define-key map (kbd (concat "M-" key)) func)
+                  (define-key map (kbd (concat "s-" key)) func)
+                  (define-key map (kbd (concat "C-c " key)) func)
+                  (when altgr-char
+                    (define-key map (kbd altgr-char) func))))
 
     (minibuffer-with-setup-hook
         (lambda () (use-local-map map))
