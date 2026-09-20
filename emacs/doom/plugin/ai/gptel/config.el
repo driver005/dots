@@ -88,6 +88,6 @@ Always uses the OmniRoute backend with model \"auto\"."
 
 ;; Map under SPC o l
 (map! :leader
-      (:prefix ("o l" . "llm")
+      (:prefix ("l" . "llm")
        :desc "OmniRoute chat" "c" #'+omniroute/chat
        :desc "OmniRoute popup" "C" #'+omniroute/popup))

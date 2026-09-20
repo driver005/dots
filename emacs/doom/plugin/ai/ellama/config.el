@@ -68,7 +68,7 @@
     (ellama-chat)))
 
 (map! :leader
-      (:prefix ("o l" . "llm")
+      (:prefix ("l" . "llm")
        :desc "Ellama chat"         "e" #'+omniroute/ellama-chat
        :desc "Ellama (pick model)" "E" #'ellama-chat
        :desc "Ask about region"    "k" #'ellama-ask-about
