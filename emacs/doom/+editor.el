@@ -112,5 +112,3 @@
 
 ;; Autoload and bind dirvish-fd for flattening directories
 (autoload 'dirvish-fd "dirvish-fd" "Flatten directory using fd" t)
-(map! :leader
-      :desc "Flatten directory (dirvish)" "f F" #'dirvish-fd)
