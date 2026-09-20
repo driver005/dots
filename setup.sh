@@ -333,7 +333,15 @@ fi
 # Chrome/Firefox store manually, then import dots/vimium/vimium.json via its
 # options page (Import/Export Options). See dots/vimium/README.md.
 echo "Vimium: install the extension manually, then import dots/vimium/vimium.json (see dots/vimium/README.md)."
-echo "Gemini URL Prompt: install the extension manually from the Chrome web store to enable URL prefilling for Emacs's SPC s o."
+
+# Download Universal AI URL Prompt for Chrome
+if [ ! -d "$PWD/extensions/universal-ai-url-prompt" ]; then
+    echo "Downloading Universal AI URL Prompt extension..."
+    mkdir -p "$PWD/extensions"
+    git clone https://github.com/penwyp/universal-ai-url-prompt "$PWD/extensions/universal-ai-url-prompt"
+fi
+echo "Universal AI URL Prompt downloaded to ~/dots/extensions/universal-ai-url-prompt."
+echo "To install: Open Chrome -> go to chrome://extensions/ -> enable 'Developer mode' -> click 'Load unpacked' -> select the ~/dots/extensions/universal-ai-url-prompt folder."
 
 # Source zshrc if it exists
 if [ -f "$HOME/.config/zshrc/.zshrc" ]; then
