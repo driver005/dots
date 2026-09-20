@@ -106,5 +106,6 @@
       :desc "App Picker" "o" #'+custom-emacs-app-picker)
 
 ;; Add ChatGPT and Gemini to online search (SPC s o)
-(add-to-list '+lookup-provider-url-alist '("ChatGPT" "https://chatgpt.com/?q=%s"))
-(add-to-list '+lookup-provider-url-alist '("Google Gemini" "https://gemini.google.com/app?q=%s"))
+(after! lookup
+  (add-to-list '+lookup-provider-url-alist '("ChatGPT" "https://chatgpt.com/?q=%s"))
+  (add-to-list '+lookup-provider-url-alist '("Google Gemini" "https://gemini.google.com/app?q=%s")))
