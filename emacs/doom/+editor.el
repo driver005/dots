@@ -57,3 +57,25 @@
 (map! :leader
       "o" nil
       :desc "App Picker" "o o" #'+custom-emacs-app-picker)
+
+;; Custom Emacs App Picker (Mirror of SPC o)
+(defun +custom-emacs-app-picker ()
+  "A custom app launcher mirroring the SPC o menu using Vertico UI."
+  (interactive)
+  (let* ((apps '(("- | Dired" . dired-jump)
+                 ("A | Org agenda" . org-agenda)
+                 ("b | Default browser" . browse-url-of-file)
+                 ("d | Start a debugger" . +debugger/start)
+                 ("f | New frame" . make-frame)
+                 ("F | Select frame" . select-frame-by-name)
+                 ("r | REPL (other window)" . +eval/open-repl-other-window)
+                 ("R | REPL (same window)" . +eval/open-repl-same-window)
+                 ("t | Terminal (Eshell)" . eshell)
+                 ("m | Git (Magit)" . magit-status)
+                 ("c | Calculator" . calc)
+                 ("p | System Monitor" . proced)))
+         (choice (completing-read "Launch App: " apps nil t)))
+    (call-interactively (alist-get choice apps nil nil #'equal))))
+
+(map! :leader
+      :desc "App Picker (Vertico)" "o o" #'+custom-emacs-app-picker)
