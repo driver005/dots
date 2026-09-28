@@ -35,17 +35,7 @@ return {
             color = function() return { fg = Snacks.util.color("Special") } end,
           },
         },
-        lualine_y = {
-          -- ── Minuet AI completion status ───────────────────────────────
-          {
-            require("minuet.lualine"),
-            display_name = "both",
-            provider_model_separator = ":",
-            display_on_idle = true,
-            icon = "󱚣",
-            color = { fg = "#89b4fa" },
-          },
-        }, -- removes cursor location
+        lualine_y = {}, -- removes cursor location
         lualine_z = {}, -- removes time
       },
     }

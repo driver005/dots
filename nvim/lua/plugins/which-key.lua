@@ -5,6 +5,10 @@ return {
       { mode = { "n", "v" }, { "<leader>h", name = "git hunk", icon = "📝" } },
       { mode = { "n", "v" }, { "<leader>gn", name = "Neogit", icon = "🐙" } },
       { mode = { "n", "v" }, { "<leader>fW", name = "Sudo Write", icon = "󰌋 " } },
+      -- Doom's own SPC i "insert" group (+which-key.el): file path, ex
+      -- path, and now emoji all live under the same insert-something
+      -- prefix there.
+      { "<leader>i", group = "insert" },
       {
         "<leader>d<Space>",
         function()

@@ -33,5 +33,14 @@ return {
       end,
       desc = "Move to above window",
     },
+    -- NOTE: <leader>w h/j/k/l is deliberately NOT bound anywhere. LazyVim's
+    -- <leader>w which-key group has its own trigger mapping with
+    -- nowait=true (:h :map-nowait), which means <leader>w always fires
+    -- immediately -- Neovim can never see a longer <leader>wh/j/k/l as one
+    -- typed sequence, buffer-local or not (nowait's prefix-ambiguity
+    -- resolution wins regardless of scope). Leaving Trouble is tracked by
+    -- focus alone instead (config/autocmds.lua's WinLeave hook), so it
+    -- fires for however focus actually leaves: <A-hjkl> above, <C-w>*,
+    -- mouse, or <leader>w's own numbered window-jump list.
   },
 }

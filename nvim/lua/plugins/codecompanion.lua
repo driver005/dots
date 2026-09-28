@@ -23,16 +23,42 @@ return {
       "CodeCompanionHistory",
       "CodeCompanionSummaries",
     },
-    event = "VeryLazy",
+    -- No `event`: the `cmd` list above and `keys` below are already
+    -- exhaustive lazy-load triggers. `event = "VeryLazy"` (fires within a
+    -- tick of every startup regardless of use) made those pointless --
+    -- this plugin now only loads the first time it's actually invoked.
 
     opts = function()
+      -- Resolved once, reused everywhere below instead of hardcoding
+      -- "claude_code" in 4 separate places (inline/cmd/background/cli
+      -- strategies) independent of whether it's actually installed --
+      -- that's the bug this whole block fixes: only the top-level `adapter`
+      -- selector used to check for an installed binary at all.
+      local function pick_agent()
+        if vim.fn.executable("claude-agent-acp") == 1 then
+          return "claude_code"
+        elseif vim.fn.executable("opencode") == 1 then
+          return "opencode"
+        end
+        return nil
+      end
+      local agent = pick_agent()
+      -- mcphub.nvim is now cond-gated off entirely on machines without
+      -- mcp-hub installed (see mcp.lua) -- extensions.mcphub below must
+      -- match, or CodeCompanion's own extension loader does an unguarded
+      -- require("mcphub.extensions.codecompanion") with no pcall and
+      -- hard-crashes the whole plugin the moment it loads.
+      local has_mcp_hub = vim.fn.executable("mcp-hub") == 1
+      if not agent then
+        vim.notify(
+          "CodeCompanion: neither claude-agent-acp nor opencode found on PATH -- ACP strategies (chat/inline/cmd/background) will fail until one is installed.",
+          vim.log.levels.WARN
+        )
+      end
+
       return {
         adapter = function()
-          if vim.fn.executable("claude-agent-acp") == 1 then
-            return require("codecompanion.adapters").use("acp", "claude_code")
-          else
-            return require("codecompanion.adapters").use("acp", "opencode")
-          end
+          return agent and require("codecompanion.adapters").use("acp", agent) or nil
         end,
         adapters = {
           acp = {
@@ -118,7 +144,7 @@ return {
         },
         interactions = {
           chat = {
-            adapter = "claude_code",
+            adapter = agent,
             opts = {
               completion_provider = "blink",
               prompt_decorator = function(message)
@@ -328,10 +354,10 @@ return {
               },
             },
           },
-          inline = { adapter = "claude_code" },
-          cmd = { adapter = "claude_code" },
+          inline = { adapter = agent },
+          cmd = { adapter = agent },
           background = {
-            adapter = "claude_code",
+            adapter = agent,
             chat = {
               callbacks = {
                 ["on_ready"] = {
@@ -343,11 +369,25 @@ return {
             },
           },
           cli = {
-            agent = "claude_code",
-            agents = {
-              claude_code = { cmd = "claude", args = {}, description = "Claude Code CLI", provider = "terminal" },
-              opencode = { cmd = "opencode", args = {}, description = "OpenCode agent", provider = "terminal" },
-            },
+            agent = agent,
+            -- Only offer terminal agents whose actual CLI binary (distinct
+            -- from the ACP bridge binaries `pick_agent` checks above --
+            -- `claude` and `opencode` here, not `claude-agent-acp`) is
+            -- really on PATH, so the picker never offers a choice that's
+            -- guaranteed to fail.
+            agents = (function()
+              local candidates = {
+                claude_code = { cmd = "claude", args = {}, description = "Claude Code CLI", provider = "terminal" },
+                opencode = { cmd = "opencode", args = {}, description = "OpenCode agent", provider = "terminal" },
+              }
+              local out = {}
+              for name, def in pairs(candidates) do
+                if vim.fn.executable(def.cmd) == 1 then
+                  out[name] = def
+                end
+              end
+              return out
+            end)(),
           },
         },
         shared = {
@@ -440,7 +480,11 @@ You are an expert programmer and software engineer working inside Neovim.
         },
 
         extensions = {
-          mcphub = {
+          -- Key omitted entirely (not just disabled) when mcp-hub isn't
+          -- installed: `key = nil` in a table constructor means the key
+          -- is simply absent, so CodeCompanion's extension loader never
+          -- iterates it and never attempts the require above.
+          mcphub = has_mcp_hub and {
             callback = "mcphub.extensions.codecompanion",
             opts = {
               make_tools = true,
@@ -450,7 +494,7 @@ You are an expert programmer and software engineer working inside Neovim.
               make_vars = false,
               make_slash_commands = true,
             },
-          },
+          } or nil,
           history = {
             enabled = true,
             opts = {
