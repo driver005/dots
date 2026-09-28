@@ -7,6 +7,10 @@ vim.lsp.log.set_level("trace")
 
 vim.filetype.add({ extension = { cppm = "cpp" } })
 
+-- Bigger recentf/savehist, like Emacs' larger recentf-max-saved-items/history
+vim.opt.shada = "!,'1000,<100,s10,h"
+vim.opt.history = 1000
+
 -- Load API keys / secrets from ~/.bashrc.secrets into the environment so
 -- plugins that read env vars (minuet/Codestral, etc.) work no matter how
 -- nvim was launched (kitty, tmux dev session, bash -c ...).
