@@ -25,6 +25,8 @@ INSTALL_TMUX=false
 ask_yes_no "Install tmux (multiplexer + full plugin ecosystem)?" && INSTALL_TMUX=true
 INSTALL_HELIX=false
 ask_yes_no "Install Helix editor?" && INSTALL_HELIX=true
+INSTALL_LEM=false
+ask_yes_no "Install Lem editor (build from source, vi-mode, Emacs keybindings disabled)?" && INSTALL_LEM=true
 INSTALL_EMACS=false
 ask_yes_no "Install Emacs (Chemacs2 + Doom Emacs + Spacemacs)?" && INSTALL_EMACS=true
 INSTALL_TABBY=false
@@ -278,6 +280,11 @@ if [ "$INSTALL_HELIX" = true ]; then
     # fetch treesitter grammars. (Config lives in dots/helix, symlinked like nvim.)
     ln -sfnv "$PWD/helix" "$HOME/.config/helix"
     ./scripts/helix-install.sh
+fi
+
+if [ "$INSTALL_LEM" = true ]; then
+    # Build Lem (sbcl + qlot), symlink ~/.lem -> dots/lem (init.lisp: vi-mode).
+    ./lem/scripts/install.sh
 fi
 
 if [ "$INSTALL_TABBY" = true ]; then

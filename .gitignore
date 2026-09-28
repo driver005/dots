@@ -1,2 +1,10 @@
 tmux/plugins/
 nushell/history.txt
+
+# Lem runtime state (logs/history/tutorial saves), matches nushell/history.txt above
+lem/debug.log
+lem/history/
+lem/lem-tutor-saves/
+
+# Vendored/fetched by setup.sh at install time (has its own nested .git, not ours to track)
+extensions/

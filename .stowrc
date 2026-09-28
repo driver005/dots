@@ -11,5 +11,6 @@
 --ignore=^emacs$
 --ignore=^helix$
 --ignore=^hypernation$
+--ignore=^lem$
 --ignore=^scripts$
 
