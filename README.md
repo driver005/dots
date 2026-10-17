@@ -42,15 +42,16 @@ fc-list | grep -i "JetBrainsMono Nerd Font"   # verify
 ```
 
 ### 2. Chrome / hterm Preferences
-Do not fetch fonts dynamically via raw GitHub URLs or `@font-face` CSS inside Chrome or Secure Shell extension preferences. Chrome blocks remote font loading under strict Content Security Policies (CSP).
-
-The font must be installed on the **machine that runs Chrome** (the client), not on the remote host you SSH into. Once it is installed there, configure your Chrome terminal preferences to reference it natively. The family names below are what the Nerd Font build registers (verified with `fc-scan`):
+`font-family` alone only works if the font is installed on the **machine running Chrome** (Windows/macOS/Linux desktop). On ChromeOS you cannot install system fonts, and fonts installed in the Linux container or on a remote host are invisible to Chrome. In that case load the font as a web font through `user-css`; hterm / Secure Shell supports this. The CSS below is from [mshaugh/nerdfont-webfonts](https://github.com/mshaugh/nerdfont-webfonts) and served through jsDelivr (pinned to a commit) because Secure Shell pages send a Cross-Origin-Embedder-Policy header: hosts without a `Cross-Origin-Resource-Policy` header, such as `*.github.io`, are blocked with `ERR_BLOCKED_BY_RESPONSE.NotSameOriginAfterDefaultedToSameOriginByCoep`. It provides JetBrainsMono Nerd Font Mono:
 
 ```javascript
-// hterm / Chrome Terminal Preferences
-term_.prefs_.set('user-css-text', '');
-term_.prefs_.set('font-family', '"JetBrainsMono Nerd Font Mono", "JetBrainsMono NFM", monospace');
+// Run in the terminal tab's DevTools console (Ctrl+Shift+J), or paste the same
+// values into Secure Shell -> Options ("font-family" and "Custom CSS (URI)").
+term_.prefs_.set('font-family', '"JetBrainsMono NFM", monospace');
+term_.prefs_.set('user-css', 'https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@c009b09b14e1de914a552a488b9d9306e0661c1a/build/jetbrainsmono-nfm.css');
 ```
+
+If the font is installed locally on the client OS, set only `font-family` to `"JetBrainsMono Nerd Font Mono", "JetBrainsMono NFM", monospace` and leave `user-css` empty.
 
 ---
 
