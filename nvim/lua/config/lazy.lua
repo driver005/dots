@@ -14,13 +14,37 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({
+-- Light mode on ChromeOS (Crostini): core LazyVim + Java extra only, none of
+-- lua/plugins/* (no AI agents, codecompanion, tabby, mcp, ...).
+-- Override with NVIM_LIGHT=1 / NVIM_LIGHT=0.
+local light = vim.env.NVIM_LIGHT
+if light == nil or light == "" then
+  vim.g.nvim_light = vim.uv.fs_stat("/opt/google/cros-containers") ~= nil
+else
+  vim.g.nvim_light = light == "1"
+end
+
+local spec
+if vim.g.nvim_light then
+  -- LazyVim reads enabled extras from this file instead of lazyvim.json
+  -- (resolved via init.lua's real path: ~/.config/nvim is per-file symlinks)
+  local root = vim.fs.dirname(vim.uv.fs_realpath(vim.fn.stdpath("config") .. "/init.lua"))
+  vim.g.lazyvim_json = root .. "/lazyvim-light.json"
+  spec = {
+    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
+    { import = "plugins.colorscheme" },
+  }
+else
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
     -- import/override with your plugins
     { import = "plugins" },
-  },
+  }
+end
+
+require("lazy").setup({
+  spec = spec,
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
     -- If you know what you're doing, you can set this to `true` to have all your custom plugins lazy-loaded by default.
